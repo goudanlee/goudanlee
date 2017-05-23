@@ -137,6 +137,43 @@
     </entry>
     
     <entry>
+      <title><![CDATA[git学习笔记]]></title>
+      <url>/2016/11/12/git%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</url>
+      <content type="html"><![CDATA[<p><strong>git命令：</strong></p>
+<p>git add xxx 添加文件</p>
+<p>git commit -m “Manual” 提交修改并添加说明，Manual对应本次修改的内容</p>
+<p>git log –pretty=oneline 显示提交日志，完整版本号</p>
+<p>git reflog 查看命令历史</p>
+<p>git reset –hard HEAD^ 回到上一版本</p>
+<p>git reset –hard cb926e7e 回到某一个版本</p>
+<p>git diff 1.暂存区已有内容，对比工作区和暂存区的内容。2.暂存区无内容，对比工作区和master的内容。</p>
+<p>git diff HEAD 对比master和工作区的区别</p>
+<p><strong>修改撤回：</strong></p>
+<p>场景1：当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令git checkout – file。</p>
+<p>场景2：当你不但改乱了工作区某个文件的内容，还添加到了暂存区时，想丢弃修改，分两步，第一步用命令git reset HEAD file，就回到了场景1，第二步按场景1操作。</p>
+<p>场景3：已经提交了不合适的修改到版本库时，想要撤销本次提交，可进行版本回退，不过前提是没有推送到远程库。</p>
+<p><strong>添加远程库：</strong></p>
+<p>git remote add origin git@server-name:path/repo-name.git 关联一个远程库</p>
+<p>git push -u origin master 第一次推送master分支的所有内容</p>
+<p>git push origin master 推送最新修改</p>
+]]></content>
+      
+        <categories>
+            
+            <category> Git </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> Git </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[Beatiful Soup的效率问题]]></title>
       <url>/2016/10/29/Beatiful-Soup%E7%9A%84%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/</url>
       <content type="html"><![CDATA[<p>今天写爬虫的时候看bs4的官方文档，说使用lxml作为解析器比使用内置解析器速度快很多，于是写了个函数测试了一下，但不知道为什么，测试跑出来的结果刚好相反，暂时未找到原因，先做下记录后续继续研究。<br><img src="/2016/10/29/Beatiful-Soup的效率问题/1.png" alt="图 1" title="图 1"></p>
