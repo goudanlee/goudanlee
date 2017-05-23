@@ -110,6 +110,49 @@
     </entry>
     
     <entry>
+      <title><![CDATA[shell实现web服务进程监控并自动重启]]></title>
+      <url>/2017/02/09/shell-monitor/</url>
+      <content type="html"><![CDATA[<h3 id="一、目的需求"><a href="#一、目的需求" class="headerlink" title="一、目的需求"></a>一、目的需求</h3><p>根据业务需要，目前负责维护的产品形式基本是属于分布式的，有多个web服务部署在不同项目现场，针对这些web服务的维护就成了比较麻烦的事情。为了保障系统服务，之前已经采用LNMP+zabbix的方案搭建了一套web服务监控系统，可以方便的查看各项目的web服务状态，方便及时发现问题并解决。  </p>
+<p>采用Grafana的前端监控界面（比zabbix自带的图表好看点 - -）：<br><img src="/2017/02/09/shell-monitor/1.png" alt="1.png" title=""> </p>
+<p>不过虽然有zabbix贴心的监控和提醒（实际上由于网络不稳定或等等玄学因素，冗余警告非常多，多了就烦了。。。），但是解决具体问题还是需要远程到项目现场进行，特别是一些进程运行时间久了之后的异常，或者数据库连接异常断开等，简单重启一下web服务即可解决。但是，问题频繁了之后就很浪费时间了，于是打算通过shell来监控各项目地的web服务并实现异常自动重启，作为程序猿，当然要用代码来偷懒啦~（懒惰是三大生产力之一）</p>
+<h3 id="二、分析过程"><a href="#二、分析过程" class="headerlink" title="二、分析过程"></a>二、分析过程</h3><p>思路如下：</p>
+<p>1.定时执行monitor监控脚本，获取服务状态；</p>
+<p>2.monitor功能：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span>:web服务异常</div><div class="line"></div><div class="line">   restart web服务</div><div class="line"></div><div class="line"><span class="keyword">else</span>:皆大欢喜</div></pre></td></tr></table></figure></p>
+<p>逻辑很简单清楚，貌似很容易，不过这里有一个问题，如何判定web服务异常？</p>
+<p><strong>根据实际经验，异常常见原因共如下几种：</strong></p>
+<p>1.web服务进程莫名挂掉；</p>
+<p>2.web服务数据库连接失败，多次尝试后挂起；</p>
+<p>3.项目地网络出现波动；（不用吐槽，教育网还有偏远地区是这样的，指不定哪天光纤被挖断或者交换机故障(╯▽╰)）</p>
+<p><strong>对应解决方案：</strong></p>
+<p>1.判断进程是否存在，不存在则重启web服务；</p>
+<p>2.这个直接通过shell不好判断，借鉴了之前在zabbix做http监控时的方法，通过模拟登录的方式，登录一个测试页面，获取http_code，若200则正常，非200则属于异常。</p>
+<p>3.这个可以通过判断本地服务，如果本地访问无问题则正常。</p>
+<h3 id="三、代码实现"><a href="#三、代码实现" class="headerlink" title="三、代码实现"></a>三、代码实现</h3><p>monitor逻辑分析清楚了，可以开始进行了，其中模拟登录使用curl来获取http_code。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span>! /bin/sh  </div><div class="line">  </div><div class="line">host_dir="/opt/ybg/"                                     # 当前用户根目录  </div><div class="line">proc_name="java"                                        # 进程名  </div><div class="line">file_name="monitor.log"                                # 日志文件  </div><div class="line">pid=0  </div><div class="line">  </div><div class="line">proc_num()                                              # 计算进程数  </div><div class="line">&#123;  </div><div class="line">    num=`ps -ef | grep $proc_name | grep -v grep | wc -l`  </div><div class="line">    return $num  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">proc_id()                                               # 进程号  </div><div class="line">&#123;  </div><div class="line">    pid=`ps -ef | grep $proc_name | grep -v grep | awk '&#123;print $2&#125;'`  </div><div class="line">&#125;  </div><div class="line"><span class="meta">#</span> 通过curl模拟登录获取http_code,模拟登录参数仅供参考</div><div class="line"><span class="meta">#</span> 如果只需要判断某页面的状态可使用curl -I -s -w "%&#123;http_code&#125;" -o /dev/null http://www.baidu.com/ 直接获取即可</div><div class="line">http_code=`curl -I -s -w "%&#123;http_code&#125;" -o -d "userKey=admin&amp;pass=c9127e832b41a" /dev/null  http://portal.ly-sky.com/login.do?login= | head -n 1 | cut -d$' ' -f2`  </div><div class="line"></div><div class="line">proc_num  </div><div class="line">number=$?  </div><div class="line">if [[ $number -eq 0 ]]||[[ $http_code -ne 200 ]]          # 判断进程是否存在  </div><div class="line">then   </div><div class="line">    cd /opt/ybg/URP/bin/</div><div class="line">    nohup ./run.sh&gt;../logs/urp.log 2&gt;&amp;1 &amp;    # 重启进程的命令，请相应修改  </div><div class="line">    sleep 3                                  #延迟3秒是为了确保进程已正常启动并方便获取pid，否则有可能获取不到pid</div><div class="line">trueproc_id                                         # 获取新进程号  </div><div class="line">    echo $pid, `date` &gt;&gt; $host_dir$file_name      # 将新进程号和重启时间记录  </div><div class="line">fi </div></pre></td></tr></table></figure></p>
+<p>执行成功的日志记录：</p>
+<p>记录了PID和启动时间，前面几条就是因为未加入sleep获取Pid失败，显示为空了</p>
+<img src="/2017/02/09/shell-monitor/2.png" alt="2.png" title="">   
+<h3 id="四、安装部署"><a href="#四、安装部署" class="headerlink" title="四、安装部署"></a>四、安装部署</h3><p>部署到服务器后只需要在crontab添加任务，定时执行就行了：</p>
+<p>[root@localhost ybg]# crontab -e  </p>
+<p>添加web服务监控，每5分钟一次，可根据实际要求修改监控频率.<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">*/5 * * * * /opt/monitor.sh</div></pre></td></tr></table></figure></p>
+<p>添加完毕后，可以手动kill -9 pid来测试监控是否正常运行。提示：测试时注意生产环境哦，如果服务宕了被老板请去喝茶就不好啦~✧(≖ ◡ ≖✿)</p>
+]]></content>
+      
+        <categories>
+            
+            <category> Shell </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> Shell </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[Oracle索引原理]]></title>
       <url>/2016/10/14/oracle-index/index/</url>
       <content type="html"><![CDATA[<h3 id="B-TREE索引"><a href="#B-TREE索引" class="headerlink" title="B-TREE索引"></a>B-TREE索引</h3><p>一个B树索引只有一个根节点，它实际就是位于树的最顶端的分支节点。<br>可以用下图一来描述B树索引的结构。其中，B表示分支节点，而L表示叶子节点。<br><img src="/2016/10/14/oracle-index/index/1.jpg" alt="B-Tree Index" title="B-Tree Index">  </p>
