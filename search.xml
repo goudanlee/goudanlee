@@ -136,7 +136,7 @@
       
         <categories>
             
-            <category> Database </category>
+            <category> Oracle </category>
             
         </categories>
         
@@ -144,8 +144,6 @@
         <tags>
             
             <tag> Oracle </tag>
-            
-            <tag> 索引 </tag>
             
         </tags>
         
@@ -175,8 +173,6 @@
         <tags>
             
             <tag> Python </tag>
-            
-            <tag> pip </tag>
             
         </tags>
         
