@@ -201,6 +201,60 @@
     </entry>
     
     <entry>
+      <title><![CDATA[oracle segmentation fault错误]]></title>
+      <url>/2016/06/23/oracle-segmentation-fault%E9%94%99%E8%AF%AF/</url>
+      <content type="html"><![CDATA[<h3 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h3><p>今天某客户现场反馈数据库无法连接，web服务无法正常访问，初步判断是数据库出现问题，远程登录oracle服务器准备进行检查。</p>
+<p>根据经验，一般这种情况可能是监听有问题，准备查看下监听状态：<br><figure class="highlight elixir"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">[oracle<span class="variable">@sysu</span> opt]<span class="variable">$ </span>lsnrctl status</div><div class="line">Segmentation fault</div></pre></td></tr></table></figure></p>
+<p>一脸懵逼，“Segmentation fault”传说中的段错误，一种不祥的预感涌上心头，接下来看看数据库服务<br><figure class="highlight elixir"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">[oracle<span class="variable">@sysu</span> opt]<span class="variable">$ </span>sqlplus /nolog</div><div class="line"></div><div class="line">Segmentation fault</div></pre></td></tr></table></figure></p>
+<p>what fu*k？！这下麻烦了，sqlplus没法用，好多事情就没法做了。。</p>
+<h3 id="问题分析："><a href="#问题分析：" class="headerlink" title="问题分析："></a>问题分析：</h3><p>第一反应查看/opt/oracle/admin/orcl/bdump/alert_orcl.log日志文件，看了半天没发现什么重要的错误信息，这下只能借助搜索引擎看看了。</p>
+<p>搜索出来的结果主要是这两种：</p>
+<p>1.该报错信息是因为在/usr/bin目录下的gcc/g++ compilers是一个文件，引起了在link的时候错误编译</p>
+<p>解决办法：<br><figure class="highlight lsl"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">　  <span class="number">1.</span> cd /usr/bin (as root)</div><div class="line"></div><div class="line">　　<span class="number">2.</span> mv gcc gcc.script</div><div class="line"></div><div class="line">　　<span class="number">3.</span> mv g++ g++.script</div><div class="line"></div><div class="line">　　<span class="number">4.</span> ln -s gcc32 gcc</div><div class="line"></div><div class="line">　　<span class="number">5.</span> ln -s g++<span class="number">32</span> g++</div><div class="line"></div><div class="line">　　<span class="number">6.</span> login as oracle software owner (make sure environment is correct)</div><div class="line"></div><div class="line">　　<span class="number">7.</span> cd $ORACLE_HOME/bin</div><div class="line"></div><div class="line">　　<span class="number">8.</span> relink all</div></pre></td></tr></table></figure></p>
+<p>根据以上命令敲完之后，sqlplus还是不行，仍然是segmentation fault错误，后来又./relink all了下，shutdown -Fr now系统，系统起来之后，oracle已经启动了。</p>
+<p>来源：<a href="http://blog.itpub.net/3090/viewspace-669836/" target="_blank" rel="external">http://blog.itpub.net/3090/viewspace-669836/</a></p>
+<p>2.重新编译生成sqlplus</p>
+<p>参考来源：<a href="http://www.askmaclean.com/archives/%E8%A7%A3%E5%86%B3sqlplus-segmentation-fault%E6%88%96hang%E9%97%AE%E9%A2%98.html" target="_blank" rel="external">http://www.askmaclean.com/archives/%E8%A7%A3%E5%86%B3sqlplus-segmentation-fault%E6%88%96hang%E9%97%AE%E9%A2%98.html</a></p>
+<p>因为了解到服务器在出问题前升级过zlib,openssl-fips,openssh，怀疑是相关的软件更新导致该错误，隐约记得stackoverflow上有个类似问题是说过一些环境的update会导致这个错误。</p>
+<h3 id="问题解决："><a href="#问题解决：" class="headerlink" title="问题解决："></a>问题解决：</h3><p>于是尝试使用方法1解决，其实是替换了gcc的版本，操作时发现未安装gcc32，于是通过yum进行安装，在yum源里查看其实是gcc34，记得切换root账户进行安装<br><figure class="highlight css"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="selector-tag">yum</span> <span class="selector-tag">install</span> <span class="selector-tag">compat-gcc-34-3</span><span class="selector-class">.4</span><span class="selector-class">.6-19</span><span class="selector-class">.el6</span><span class="selector-class">.x86_64</span><span class="selector-class">.rpm</span>      </div><div class="line"><span class="selector-tag">yum</span> <span class="selector-tag">install</span> <span class="selector-tag">compat-gcc-34-c</span>++<span class="selector-tag">-3</span><span class="selector-class">.4</span><span class="selector-class">.6-19</span><span class="selector-class">.el6</span><span class="selector-class">.x86_64</span><span class="selector-class">.rpm</span></div></pre></td></tr></table></figure></p>
+<p>安装完成后，relink all 发现问题依旧，重启服务器，问题仍未解决。</p>
+<p>无奈，采用方法2，发现根本无法成功生成，因为这个文件根本没找到</p>
+<img src="/2016/06/23/oracle-segmentation-fault错误/1.png" alt="图 1" title="图 1">
+<p>多方尝试未果，突然在一个帖子里看到同样问题的同学，最早几个回复都是提示环境变量是否正常，虽然该同学最终解决问题是通过重启服务器解决，不过也提供了思路，是否重启服务器后重置了环境变量然后恢复呢。</p>
+<img src="/2016/06/23/oracle-segmentation-fault错误/2.png" alt="图 2" title="图 2">
+<p>查看LD_LIBRARY_PATH环境变量，正常情况下这个应该是空值的，不过在这里发现是有值的：<br><figure class="highlight crystal"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">[oracle@sysu ~]$ echo $LD_LIBRARY_PATH</div><div class="line">/usr/local/<span class="class"><span class="keyword">lib</span>:/<span class="title">usr</span>/<span class="title">lib</span>/<span class="title">oracle</span>/12.1/<span class="title">client64</span>/<span class="title">lib</span></span></div></pre></td></tr></table></figure></p>
+<p>LD_LIBRARY_PATH环境变量主要是用于指定动态链接器（ld）查找ELF可执行文件运行时所依赖的动态库（so）的路径，其内容是以冒号分隔的路径列表。ld链接器将优先在该变量设置的路径中查找，若未找到则在标准库路径/lib和/usr/lib中继续搜索</p>
+<p>于是尝试清空该变量中与oracle相关部分进行测试：</p>
+<pre><code>[oracle@sysu ~]$ export LD_LIBRARY_PATH=/usr/local/lib
+[oracle@sysu ~]$ sqlplus
+
+SQL*Plus: Release 10.2.0.1.0 - Production on Mon Feb 20 12:40:36 2017
+
+Copyright (c) 1982, 2005, Oracle.  All rights reserved.
+
+Enter user-name:
+</code></pre><p>确认问题原因就是$LD_LIBRARY_PATH环境变量问题，鉴于/usr/lib/oracle/12.1/client64/lib被移除后正常，于是将其mv到tmp下，以免再次影响。</p>
+<p>顺利重启监听和数据库服务后，一切恢复正常！！</p>
+<p>再次查看下$LD_LIBRARY_PATH环境变量，发现又重新生成了/usr/lib/oracle/12.1/client64/lib，不过这次数据库就已经正常了，猜测应该是oracle运行过程中自动生成，可能在升级软件过程中重新lib库里相关文件更新导致oracle无法正常运行，总之这个segmentation fault实在是磨人，异常的莫名其妙，连出错原因都很难查找。</p>
+<p>在此记下该问题解决过程，也给其他同学带来一点借鉴！</p>
+]]></content>
+      
+        <categories>
+            
+            <category> Oracle </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> Oracle </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[windows及linux环境下永久修改pip镜像源的方法]]></title>
       <url>/2016/04/10/pip-source/</url>
       <content type="html"><![CDATA[<h4 id="一、在windows环境下修改pip镜像源的方法-以python3-5为例"><a href="#一、在windows环境下修改pip镜像源的方法-以python3-5为例" class="headerlink" title="一、在windows环境下修改pip镜像源的方法(以python3.5为例)"></a>一、在windows环境下修改pip镜像源的方法(以python3.5为例)</h4><p>(1):在windows文件管理器中,输入 %APPDATA%<br><img src="/2016/04/10/pip-source/1.jpg" alt="图 1" title="图 1"> </p>
