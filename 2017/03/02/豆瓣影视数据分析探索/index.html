@@ -1,0 +1,1157 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="goudanlee's blog"><title>利用Python进行豆瓣影视数据分析 | GoudanLee</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/6.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.2/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.2/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">利用Python进行豆瓣影视数据分析</h1><a id="logo" href="/.">GoudanLee</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a></div></div><div id="layout" class="pure-g"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">利用Python进行豆瓣影视数据分析</h1><div class="post-meta">Mar 2, 2017<span> | </span><span class="category"><a href="/categories/DAND/">DAND</a></span><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><span id="busuanzi_container_page_pv"> | <span id="busuanzi_value_page_pv"></span><span> 阅读</span></span></div><a data-disqus-identifier="2017/03/02/豆瓣影视数据分析探索/" href="/2017/03/02/豆瓣影视数据分析探索/#disqus_thread" class="disqus-comment-count"></a><div class="post-content"><h3 id="豆瓣影视数据分析"><a href="#豆瓣影视数据分析" class="headerlink" title="豆瓣影视数据分析"></a>豆瓣影视数据分析</h3><p>最近学习了Pandas以及相关数据分析的知识，今天尝试使用Pandas对豆瓣影视数据进行分析，数据事先已经通过爬虫抓取，接下来对这个数据进行一些分析，尝试一下数据分析的过程。</p>
+<h4 id="定义排名的算法规则"><a href="#定义排名的算法规则" class="headerlink" title="定义排名的算法规则"></a>定义排名的算法规则</h4><p>排名规则主要由两个关键字段构成，一个是影评分数，一个是观影人数，通过对这两个值采用统计学的Z-score标准化方法，来计算排名。</p>
+<p>这里我们根据rate和audience计算出一个指数index，我们将用index值来作为排序的依据，并将index作为新的column添加到movie_frame中</p>
+<p>index值是由rate和audience相加得到的，我们对rate和audience都采用z-score 标准化，即（数值-平均值）/标准差，来保证两个数值都在相等一定范围内。</p>
+<h4 id="数据探索"><a href="#数据探索" class="headerlink" title="数据探索"></a>数据探索</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> json</div><div class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</div><div class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</div><div class="line"><span class="comment"># 导入我们事先准备好的csv，dataframe命名为data</span></div><div class="line">data = pd.DataFrame(pd.read_csv(<span class="string">'douban2016all.csv'</span>))</div><div class="line"><span class="comment"># 因为虽然打上了2016的标签，但是部分影视剧不是2016年的，用一行代码过滤时间，仅保留2016年的影视剧</span></div><div class="line">data = data[data.year == <span class="string">'(2016)'</span>]</div><div class="line">data = data[np.isfinite(data[<span class="string">'rate'</span>])] <span class="comment">#去除没有评分的影片</span></div><div class="line">data.reset_index(drop=<span class="keyword">True</span>, inplace=<span class="keyword">True</span>) <span class="comment">#重置index</span></div><div class="line">data.head()</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: left;">
+      <th></th>
+      <th>actors</th>
+      <th>area</th>
+      <th>audience</th>
+      <th>director</th>
+      <th>genre</th>
+      <th>rate</th>
+      <th>title</th>
+      <th>year</th>
+      <th>…</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>[“李家鼎”, “谭玉瑛”]</td>
+      <td>香港</td>
+      <td>73.0</td>
+      <td>[“林志荣”, “张洪翅”]</td>
+      <td>[“真人秀”]</td>
+      <td>9.0</td>
+      <td>阿爷厨房 阿爺廚房</td>
+      <td>(2016)</td>
+      <td>{}</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>[“薛皓文”, “詹思萌”, “马刚”, “言杰”, “任萧楠”, “苏芸盟”, “秦子婷”…</td>
+      <td>中国大陆</td>
+      <td>69.0</td>
+      <td>[“蒋丛”]</td>
+      <td>[“剧情”]</td>
+      <td>3.2</td>
+      <td>屠门镇之破茧之子</td>
+      <td>(2016)</td>
+      <td>{}</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>[“吹石一惠”]</td>
+      <td>日本</td>
+      <td>68.0</td>
+      <td>[“NHK”]</td>
+      <td>[“纪录片”]</td>
+      <td>7.6</td>
+      <td>纪实72小时～东京 铁塔下的新年祈愿 ドキュメント72時間 東京タワーで見る初夢は</td>
+      <td>(2016)</td>
+      <td>{}</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>[]</td>
+      <td>台湾</td>
+      <td>278.0</td>
+      <td>[“徐国峰”]</td>
+      <td>[“动画”, “短片”]</td>
+      <td>6.8</td>
+      <td>缺乏名字的场所 缺乏名字的場所</td>
+      <td>(2016)</td>
+      <td>{}</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>[]</td>
+      <td>日本</td>
+      <td>68.0</td>
+      <td>[]</td>
+      <td>[“纪录片”]</td>
+      <td>8.0</td>
+      <td>纪实72小时 隆冬的东京 有一种温暖叫“花子” ドキュメント72時間 真冬の東京 その名は“…</td>
+      <td>(2016)</td>
+      <td>{}</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#生成新的dataframe，命名为douban，保留"title","year","actors", "director", "genre", "rate","audience","area"</span></div><div class="line">douban = pd.DataFrame(data, columns=[<span class="string">"title"</span>,<span class="string">"year"</span>,<span class="string">"actors"</span>, <span class="string">"director"</span>, <span class="string">"genre"</span>, <span class="string">"rate"</span>,<span class="string">"audience"</span>,<span class="string">"area"</span>])</div><div class="line">douban.head()</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>title</th>
+      <th>year</th>
+      <th>actors</th>
+      <th>director</th>
+      <th>genre</th>
+      <th>rate</th>
+      <th>audience</th>
+      <th>area</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>阿爷厨房 阿爺廚房</td>
+      <td>(2016)</td>
+      <td>[“李家鼎”, “谭玉瑛”]</td>
+      <td>[“林志荣”, “张洪翅”]</td>
+      <td>[“真人秀”]</td>
+      <td>9.0</td>
+      <td>73.0</td>
+      <td>香港</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>屠门镇之破茧之子</td>
+      <td>(2016)</td>
+      <td>[“薛皓文”, “詹思萌”, “马刚”, “言杰”, “任萧楠”, “苏芸盟”, “秦子婷”…</td>
+      <td>[“蒋丛”]</td>
+      <td>[“剧情”]</td>
+      <td>3.2</td>
+      <td>69.0</td>
+      <td>中国大陆</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>纪实72小时～东京 铁塔下的新年祈愿 ドキュメント72時間 東京タワーで見る初夢は</td>
+      <td>(2016)</td>
+      <td>[“吹石一惠”]</td>
+      <td>[“NHK”]</td>
+      <td>[“纪录片”]</td>
+      <td>7.6</td>
+      <td>68.0</td>
+      <td>日本</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>缺乏名字的场所 缺乏名字的場所</td>
+      <td>(2016)</td>
+      <td>[]</td>
+      <td>[“徐国峰”]</td>
+      <td>[“动画”, “短片”]</td>
+      <td>6.8</td>
+      <td>278.0</td>
+      <td>台湾</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>纪实72小时 隆冬的东京 有一种温暖叫“花子” ドキュメント72時間 真冬の東京 その名は“…</td>
+      <td>(2016)</td>
+      <td>[]</td>
+      <td>[]</td>
+      <td>[“纪录片”]</td>
+      <td>8.0</td>
+      <td>68.0</td>
+      <td>日本</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">len(douban) <span class="comment">#查看总体数目</span></div></pre></td></tr></table></figure>
+<pre><code>2520
+</code></pre><h4 id="数据清洗整理"><a href="#数据清洗整理" class="headerlink" title="数据清洗整理"></a>数据清洗整理</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="comment"># 将dataframe直接转换成json</span></div><div class="line">douban_json = douban.to_dict(orient =<span class="string">'index'</span>)</div><div class="line">print(douban_json[<span class="number">2510</span>]) </div><div class="line"></div><div class="line">&#123;<span class="string">'title'</span>: <span class="string">'\xe9\xa9\xb4\xe5\xbe\x97\xe6\xb0\xb4'</span>, <span class="string">'area'</span>: <span class="string">'\xe4\xb8\xad\xe5\x9b\xbd\xe5\xa4\xa7\xe9\x99\x86'</span>, <span class="string">'audience'</span>: <span class="number">229548.0</span>, <span class="string">'director'</span>: <span class="string">'["\xe5\x91\xa8\xe7\x94\xb3", "\xe5\x88\x98\xe9\x9c\xb2"]'</span>, <span class="string">'rate'</span>: <span class="number">8.3</span>, <span class="string">'actors'</span>: <span class="string">'["\xe4\xbb\xbb\xe7\xb4\xa0\xe6\xb1\x90", "\xe5\xa4\xa7\xe5\x8a\x9b", "\xe5\x88\x98\xe5\xb8\x85\xe8\x89\xaf", "\xe8\xa3\xb4\xe9\xad\x81\xe5\xb1\xb1", "\xe9\x98\xbf\xe5\xa6\x82\xe9\x82\xa3", "\xe9\x9f\xa9\xe5\xbd\xa6\xe5\x8d\x9a", "\xe5\x8d\x9c\xe5\x86\xa0\xe4\xbb\x8a", "\xe7\x8e\x8b\xe5\xa0\x83", "\xe9\xab\x98\xe9\x98\xb3", "\xe8\x8b\x8f\xe5\x8d\x83\xe8\xb6\x8a", "\xe6\x9f\xa5\xe5\xb0\x94\xe6\x96\xaf\xc2\xb7\xe4\xba\x9a\xe7\x91\x9f", "\xe7\x8e\x8b\xe5\xb3\xb0"]'</span>, <span class="string">'year'</span>: <span class="string">'(2016)'</span>, <span class="string">'genre'</span>: <span class="string">'["\xe5\x89\xa7\xe6\x83\x85", "\xe5\x96\x9c\xe5\x89\xa7"]'</span>&#125;</div></pre></td></tr></table></figure>
+<p>我们观察到actors, director,genre键所代表的值都是字符串，不是我们想要的list形式，我们需要把这些值转变变成一个list方便之后的读取。</p>
+<p>举个例子，在导演这里，我们希望把’director’: ‘[“周申”, “刘露”]’转变成’director’: [‘周申’, ‘刘露’]</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 这是一个update函数，用于更新douban_json中的actors, director, genre键下的值</span></div><div class="line"><span class="comment">#data是指我们要导入的数据，item就是指我们要更新的值的键，比如"actors"，"director"这种</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">update</span><span class="params">(data, item)</span>:</span></div><div class="line">    <span class="keyword">for</span> movie <span class="keyword">in</span> data:</div><div class="line">        aa = []</div><div class="line">        <span class="keyword">if</span> item <span class="keyword">in</span> data[movie]:</div><div class="line">            subset = data[movie][item]</div><div class="line">            sublist_new = subset[<span class="number">1</span>:<span class="number">-1</span>].split(<span class="string">","</span>)</div><div class="line">            <span class="keyword">for</span> i <span class="keyword">in</span> sublist_new:</div><div class="line">                i = i.replace(<span class="string">" "</span>, <span class="string">""</span>)</div><div class="line">                i = i.replace(<span class="string">'"'</span>,<span class="string">''</span>)</div><div class="line">                aa.append(i)</div><div class="line">        data[movie][item] = aa</div><div class="line">    <span class="keyword">return</span> data</div></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 更新后的json命名为new_data</span></div><div class="line">new_data = update(douban_json,<span class="string">"actors"</span>) </div><div class="line">new_data = update(douban_json,<span class="string">"director"</span>)</div><div class="line">new_data = update(douban_json,<span class="string">"genre"</span>)</div></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 查看任意一个new_data中的值</span></div><div class="line">new_data[<span class="number">2510</span>]</div></pre></td></tr></table></figure>
+<pre><code>{&apos;actors&apos;: [&apos;\xe4\xbb\xbb\xe7\xb4\xa0\xe6\xb1\x90&apos;,
+  &apos;\xe5\xa4\xa7\xe5\x8a\x9b&apos;,
+  &apos;\xe5\x88\x98\xe5\xb8\x85\xe8\x89\xaf&apos;,
+  &apos;\xe8\xa3\xb4\xe9\xad\x81\xe5\xb1\xb1&apos;,
+  &apos;\xe9\x98\xbf\xe5\xa6\x82\xe9\x82\xa3&apos;,
+  &apos;\xe9\x9f\xa9\xe5\xbd\xa6\xe5\x8d\x9a&apos;,
+  &apos;\xe5\x8d\x9c\xe5\x86\xa0\xe4\xbb\x8a&apos;,
+  &apos;\xe7\x8e\x8b\xe5\xa0\x83&apos;,
+  &apos;\xe9\xab\x98\xe9\x98\xb3&apos;,
+  &apos;\xe8\x8b\x8f\xe5\x8d\x83\xe8\xb6\x8a&apos;,
+  &apos;\xe6\x9f\xa5\xe5\xb0\x94\xe6\x96\xaf\xc2\xb7\xe4\xba\x9a\xe7\x91\x9f&apos;,
+  &apos;\xe7\x8e\x8b\xe5\xb3\xb0&apos;],
+ &apos;area&apos;: &apos;\xe4\xb8\xad\xe5\x9b\xbd\xe5\xa4\xa7\xe9\x99\x86&apos;,
+ &apos;audience&apos;: 229548.0,
+ &apos;director&apos;: [&apos;\xe5\x91\xa8\xe7\x94\xb3&apos;, &apos;\xe5\x88\x98\xe9\x9c\xb2&apos;],
+ &apos;genre&apos;: [&apos;\xe5\x89\xa7\xe6\x83\x85&apos;, &apos;\xe5\x96\x9c\xe5\x89\xa7&apos;],
+ &apos;rate&apos;: 8.3,
+ &apos;title&apos;: &apos;\xe9\xa9\xb4\xe5\xbe\x97\xe6\xb0\xb4&apos;,
+ &apos;year&apos;: &apos;(2016)&apos;}
+</code></pre><p>由于我们此次探索的是国产影视数据，所以这里需要筛选掉非国产制作的影视剧，这里的规则是通过查找”area”是否包含“中国”，所以，严格意义上来说，合资也包含在内了。
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 排除非中国制作的影视剧</span></div><div class="line">notchina = [movie <span class="keyword">for</span> movie <span class="keyword">in</span> new_data <span class="keyword">if</span> new_data[movie][<span class="string">"area"</span>].find(<span class="string">"中国"</span>) != <span class="number">0</span>]</div><div class="line"><span class="keyword">for</span> i <span class="keyword">in</span> notchina:</div><div class="line">    new_data.pop(i)</div><div class="line">len(new_data)</div></pre></td></tr></table></figure></p>
+<pre><code>644
+</code></pre><p>数据已经清理完毕，最终new_data里面保存了我们清理后的结果，接下来我们将对new_data进行数据分析</p>
+<h4 id="数据分析探索"><a href="#数据分析探索" class="headerlink" title="数据分析探索"></a>数据分析探索</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 把清理过后的josn格式的数据new_data转换为pandas dataframe，命名为new_data_frame</span></div><div class="line">new_data_frame = pd.DataFrame.from_dict(new_data,orient=<span class="string">'index'</span>)</div><div class="line">new_data_frame.head(<span class="number">10</span>)</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>title</th>
+      <th>area</th>
+      <th>audience</th>
+      <th>director</th>
+      <th>rate</th>
+      <th>actors</th>
+      <th>year</th>
+      <th>genre</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>屠门镇之破茧之子</td>
+      <td>中国大陆</td>
+      <td>69.0</td>
+      <td>[蒋丛]</td>
+      <td>3.2</td>
+      <td>[薛皓文, 詹思萌, 马刚, 言杰, 任萧楠, 苏芸盟, 秦子婷, 蒋瑞征]</td>
+      <td>(2016)</td>
+      <td>[剧情]</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>手机芯战</td>
+      <td>中国大陆</td>
+      <td>165.0</td>
+      <td>[冯小刚]</td>
+      <td>4.7</td>
+      <td>[冯小刚, 余文乐]</td>
+      <td>(2016)</td>
+      <td>[短片]</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>爆笑先森</td>
+      <td>中国大陆</td>
+      <td>171.0</td>
+      <td>[崔志佳]</td>
+      <td>5.0</td>
+      <td>[崔志佳, 潘斌龙, 肖旭]</td>
+      <td>(2016)</td>
+      <td>[]</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>我的朋友陈白露小姐</td>
+      <td>中国大陆</td>
+      <td>1929.0</td>
+      <td>[陈昆晖]</td>
+      <td>3.9</td>
+      <td>[陈娅安, 张天爱, 屈楚萧, 李子峰, 李茜, 明道, 谭凯, 周奕彤, 崔可法, 李卓霖…</td>
+      <td>(2016)</td>
+      <td>[剧情, 爱情]</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>半面人 三剑豪之半面人</td>
+      <td>中国大陆</td>
+      <td>57.0</td>
+      <td>[洪德伟，唐妍，杨学浦，冯艾]</td>
+      <td>6.3</td>
+      <td>[余志成, 李京, 谢松博]</td>
+      <td>(2016)</td>
+      <td>[剧情, 动作, 动画, 奇幻]</td>
+    </tr>
+    <tr>
+      <th>26</th>
+      <td>年兽大作战</td>
+      <td>中国大陆</td>
+      <td>2099.0</td>
+      <td>[张扬]</td>
+      <td>5.7</td>
+      <td>[雷佳音, 周冬雨, 陈赫, 陶虹, 郭涛, 郭子睿, 刘仪伟, 沈腾, 张一白, 王迅, …</td>
+      <td>(2016)</td>
+      <td>[喜剧, 动画, 奇幻]</td>
+    </tr>
+    <tr>
+      <th>27</th>
+      <td>假如我有超能力</td>
+      <td>中国大陆</td>
+      <td>448.0</td>
+      <td>[刘迪洋]</td>
+      <td>7.7</td>
+      <td>[王子睿, 刘语乔, 张歌, 杨舒枫]</td>
+      <td>(2016)</td>
+      <td>[喜剧, 爱情, 奇幻]</td>
+    </tr>
+    <tr>
+      <th>28</th>
+      <td>诡娃</td>
+      <td>中国大陆</td>
+      <td>487.0</td>
+      <td>[蒋国权]</td>
+      <td>2.4</td>
+      <td>[李抒航, 程媛媛, 孔维]</td>
+      <td>(2016)</td>
+      <td>[惊悚, 恐怖]</td>
+    </tr>
+    <tr>
+      <th>30</th>
+      <td>超级女声2016</td>
+      <td>中国大陆</td>
+      <td>122.0</td>
+      <td>[周山]</td>
+      <td>4.5</td>
+      <td>[史兆怡, 方圆, 张晓钰, 王金金, 黄汐源, 汪睿, 李雨, 袁子仪, 金雯昕, 强东玥…</td>
+      <td>(2016)</td>
+      <td>[音乐, 真人秀]</td>
+    </tr>
+    <tr>
+      <th>34</th>
+      <td>中国好歌曲 第三季</td>
+      <td>中国大陆</td>
+      <td>2089.0</td>
+      <td>[]</td>
+      <td>7.2</td>
+      <td>[刘欢, 陶喆, 范晓萱, 胡海泉, 陈羽凡]</td>
+      <td>(2016)</td>
+      <td>[音乐, 真人秀]</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<h4 id="最佳影片和最差影片"><a href="#最佳影片和最差影片" class="headerlink" title="最佳影片和最差影片"></a>最佳影片和最差影片</h4><p>新建一个movie_frame的dataframe，只保留”title”,”rate”, “audience”</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 新建一个movie_frame的dataframe，只保留"title","rate", "audience"</span></div><div class="line">movie_frame = pd.DataFrame(new_data_frame, columns = [<span class="string">"title"</span>,<span class="string">"rate"</span>, <span class="string">"audience"</span>])</div><div class="line">movie_frame.head()</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>title</th>
+      <th>rate</th>
+      <th>audience</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>屠门镇之破茧之子</td>
+      <td>3.2</td>
+      <td>69.0</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>手机芯战</td>
+      <td>4.7</td>
+      <td>165.0</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>爆笑先森</td>
+      <td>5.0</td>
+      <td>171.0</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>我的朋友陈白露小姐</td>
+      <td>3.9</td>
+      <td>1929.0</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>半面人 三剑豪之半面人</td>
+      <td>6.3</td>
+      <td>57.0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<p>根据rate和audience计算出一个指数index，我们将用index值来作为排序的依据，并将index作为新的column添加到movie_frame中。</p>
+<p>index值是由rate和audience相加得到的，我们对rate和audience都采用z-score 标准化，即（数值-平均值）/标准差，来保证两个数值都在相等一定范围内。</p>
+<p>也可以采用（数值-最小值）/（最大值-最小值）来保证rate和audience标准化后的值在（0，1）范围内 </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 计算index指数 </span></div><div class="line">movie_frame[<span class="string">'index'</span>] = (movie_frame.rate - movie_frame.rate.mean())/movie_frame.rate.std() + (movie_frame.audience - movie_frame.audience.mean())/movie_frame.audience.std()</div><div class="line"></div><div class="line">movie_frame.head()</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>title</th>
+      <th>rate</th>
+      <th>audience</th>
+      <th>index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>屠门镇之破茧之子</td>
+      <td>3.2</td>
+      <td>69.0</td>
+      <td>-1.826201</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>手机芯战</td>
+      <td>4.7</td>
+      <td>165.0</td>
+      <td>-1.009050</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>爆笑先森</td>
+      <td>5.0</td>
+      <td>171.0</td>
+      <td>-0.846053</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>我的朋友陈白露小姐</td>
+      <td>3.9</td>
+      <td>1929.0</td>
+      <td>-1.385304</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>半面人 三剑豪之半面人</td>
+      <td>6.3</td>
+      <td>57.0</td>
+      <td>-0.144325</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<p>分别根据index进行升序和倒序排列，找出最佳影片和最差影片</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 最差影片</span></div><div class="line">movie_frame = movie_frame.sort_values(by=<span class="string">'index'</span>)</div><div class="line">movie_frame.head()</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>title</th>
+      <th>rate</th>
+      <th>audience</th>
+      <th>index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>233</th>
+      <td>渡灵人</td>
+      <td>2.2</td>
+      <td>257.0</td>
+      <td>-2.362700</td>
+    </tr>
+    <tr>
+      <th>68</th>
+      <td>绝战</td>
+      <td>2.3</td>
+      <td>443.0</td>
+      <td>-2.302330</td>
+    </tr>
+    <tr>
+      <th>415</th>
+      <td>功夫四侠</td>
+      <td>2.4</td>
+      <td>276.0</td>
+      <td>-2.253543</td>
+    </tr>
+    <tr>
+      <th>1314</th>
+      <td>越囧</td>
+      <td>2.4</td>
+      <td>320.0</td>
+      <td>-2.252099</td>
+    </tr>
+    <tr>
+      <th>117</th>
+      <td>诡梦凶铃</td>
+      <td>2.4</td>
+      <td>385.0</td>
+      <td>-2.249966</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+<p>最佳影片
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 最佳影片</span></div><div class="line">movie_frame = movie_frame.sort_values(by=<span class="string">'index'</span>, ascending=<span class="keyword">False</span>)</div><div class="line">movie_frame.head()</div></pre></td></tr></table></figure></p>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>title</th>
+      <th>rate</th>
+      <th>audience</th>
+      <th>index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2487</th>
+      <td>美人鱼</td>
+      <td>6.8</td>
+      <td>372061.0</td>
+      <td>12.333137</td>
+    </tr>
+    <tr>
+      <th>2503</th>
+      <td>湄公河行动</td>
+      <td>8.0</td>
+      <td>296258.0</td>
+      <td>10.497104</td>
+    </tr>
+    <tr>
+      <th>2510</th>
+      <td>驴得水</td>
+      <td>8.3</td>
+      <td>229548.0</td>
+      <td>8.471027</td>
+    </tr>
+    <tr>
+      <th>2514</th>
+      <td>七月与安生</td>
+      <td>7.6</td>
+      <td>210274.0</td>
+      <td>7.458745</td>
+    </tr>
+    <tr>
+      <th>2480</th>
+      <td>大鱼海棠</td>
+      <td>6.5</td>
+      <td>203513.0</td>
+      <td>6.639970</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<p>将总表转化为演员，导演和电影类型的dataframe</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 将总表转化为演员，导演和电影类型的dataframe</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_list</span><span class="params">(data, item)</span>:</span>  <span class="comment">#分别获取演员，导演，和类型名单</span></div><div class="line">    results = []</div><div class="line">    <span class="keyword">for</span> movie <span class="keyword">in</span> new_data:</div><div class="line">        <span class="keyword">if</span> item <span class="keyword">in</span> new_data[movie]:</div><div class="line">            <span class="keyword">for</span> i <span class="keyword">in</span> new_data[movie][item]:</div><div class="line">                <span class="keyword">if</span> len(i)&gt;<span class="number">0</span>:</div><div class="line">                    results.append(i)</div><div class="line">    results = list(set(results))</div><div class="line">    <span class="keyword">return</span> results</div><div class="line"></div><div class="line">actor_list = get_list(new_data, <span class="string">"actors"</span>)</div><div class="line">director_list = get_list(new_data, <span class="string">"director"</span>)</div><div class="line">genre_list = get_list(new_data, <span class="string">"genre"</span>)</div><div class="line">movie_list = get_list(new_data, <span class="string">"title"</span>)</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">classbyitem</span><span class="params">(listname, items)</span>:</span></div><div class="line">    sum_list = []</div><div class="line">    <span class="keyword">for</span> name <span class="keyword">in</span> listname:</div><div class="line">        movie_name = []</div><div class="line">        count = <span class="number">0</span></div><div class="line">        total_rate = <span class="number">0</span></div><div class="line">        total_auidence = <span class="number">0</span></div><div class="line">        <span class="keyword">for</span> movie <span class="keyword">in</span> new_data:        </div><div class="line">            <span class="keyword">if</span> name <span class="keyword">in</span> new_data[movie][items]:</div><div class="line">                <span class="keyword">if</span> new_data[movie][<span class="string">"rate"</span>] &gt; <span class="number">0</span> <span class="keyword">and</span> new_data[movie][<span class="string">"audience"</span>]&gt;<span class="number">0</span>:</div><div class="line">                    total_rate = total_rate + new_data[movie][<span class="string">"rate"</span>]</div><div class="line">                    total_auidence = total_auidence + new_data[movie][<span class="string">"audience"</span>]</div><div class="line">                    movie_name.append(new_data[movie][<span class="string">"title"</span>])</div><div class="line">                    count = count + <span class="number">1</span>        </div><div class="line">        sum_list.append([name,count,total_rate,total_auidence,movie_name])</div><div class="line">    <span class="keyword">return</span> sum_list</div><div class="line"></div><div class="line">genre_frame = pd.DataFrame(classbyitem(genre_list, <span class="string">"genre"</span>),columns=[<span class="string">"name"</span>, <span class="string">"count"</span>,<span class="string">"total_rate"</span>,<span class="string">"total_audience"</span>,<span class="string">"movies"</span>])</div><div class="line">actor_frame = pd.DataFrame(classbyitem(actor_list, <span class="string">"actors"</span>),columns=[<span class="string">"name"</span>, <span class="string">"count"</span>,<span class="string">"total_rate"</span>, <span class="string">"total_audience"</span>,<span class="string">"movies"</span>])</div><div class="line">director_frame = pd.DataFrame(classbyitem(director_list, <span class="string">"director"</span>),columns=[<span class="string">"name"</span>, <span class="string">"count"</span>,<span class="string">"total_rate"</span>, <span class="string">"total_audience"</span>,<span class="string">"movies"</span>])</div></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 查看我们之前生成的actor_frame</span></div><div class="line">actor_frame.head()</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>count</th>
+      <th>total_rate</th>
+      <th>total_audience</th>
+      <th>movies</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>郑国霖</td>
+      <td>2</td>
+      <td>10.9</td>
+      <td>64698.0</td>
+      <td>[老九门, 青云志]</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>朱袁员</td>
+      <td>1</td>
+      <td>5.0</td>
+      <td>105.0</td>
+      <td>[毛泽东三兄弟]</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>中村绘里子</td>
+      <td>1</td>
+      <td>7.1</td>
+      <td>1766.0</td>
+      <td>[从前有座灵剑山 霊剣山 星屑たちの宴]</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>李曼筠</td>
+      <td>1</td>
+      <td>2.7</td>
+      <td>189.0</td>
+      <td>[少女龙婆]</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>宋运成</td>
+      <td>1</td>
+      <td>5.3</td>
+      <td>77.0</td>
+      <td>[寒山令]</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 查看我们之前生成的director_frame</span></div><div class="line">director_frame.head()</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>count</th>
+      <th>total_rate</th>
+      <th>total_audience</th>
+      <th>movies</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>余庆</td>
+      <td>1</td>
+      <td>6.3</td>
+      <td>509.0</td>
+      <td>[特殊嫌疑犯]</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>马伟豪</td>
+      <td>1</td>
+      <td>4.9</td>
+      <td>7033.0</td>
+      <td>[我们的十年]</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>深圳卫视</td>
+      <td>1</td>
+      <td>8.1</td>
+      <td>554.0</td>
+      <td>[深圳卫视“时间的朋友”2016跨年演讲]</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>程丹</td>
+      <td>1</td>
+      <td>7.9</td>
+      <td>209.0</td>
+      <td>[中国文房四宝]</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>赖俊羽</td>
+      <td>1</td>
+      <td>2.6</td>
+      <td>4214.0</td>
+      <td>[泡沫之夏]</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 查看我们之前生成的genre_frame</span></div><div class="line">genre_frame.head()</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>count</th>
+      <th>total_rate</th>
+      <th>total_audience</th>
+      <th>movies</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>歌舞</td>
+      <td>8</td>
+      <td>54.8</td>
+      <td>3637.0</td>
+      <td>[江苏卫视2016跨年演唱会, 星动亚洲 第二季, 2016辽宁卫视春节联欢晚会, 极限公益…</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>犯罪</td>
+      <td>33</td>
+      <td>197.5</td>
+      <td>1125388.0</td>
+      <td>[拐人 人さらい, 诡梦凶铃, 特殊嫌疑犯, 浴缸神探, 爱的追踪, 轻松+愉快, 十宗罪,…</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>戏曲</td>
+      <td>1</td>
+      <td>7.1</td>
+      <td>116.0</td>
+      <td>[Lying man 第五季 lying man 第五季]</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>脱口秀</td>
+      <td>37</td>
+      <td>270.2</td>
+      <td>85884.0</td>
+      <td>[有请老梁, 大学生来了, 电影最TOP, 暴走法条君, 黄小厨的春夏秋冬 第二季, 你正常…</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>动作</td>
+      <td>49</td>
+      <td>268.3</td>
+      <td>1286648.0</td>
+      <td>[半面人 三剑豪之半面人, 全职法师, 绝战, 白雪公主和三只小猪, 喜乐长安, 看见我和你…</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<p>按照我们对最佳影片添加index的方法，计算出actor表中的index指数
+注意：因为一名演员2016年可能出演多部电影，所以在计算index指数时候要把total_rate和total_audience除以count转化为平均值</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 计算index指数</span></div><div class="line">actor_frame[<span class="string">'rate'</span>] = actor_frame.total_rate/actor_frame[<span class="string">'count'</span>]</div><div class="line">actor_frame[<span class="string">'audience'</span>] = actor_frame.total_audience/actor_frame[<span class="string">'count'</span>]</div><div class="line">actor_frame[<span class="string">'index'</span>] = (actor_frame.rate - actor_frame.rate.mean())/actor_frame.rate.std() + (actor_frame.audience - actor_frame.audience.mean())/actor_frame.audience.std()</div><div class="line">actor_frame.head()</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>count</th>
+      <th>total_rate</th>
+      <th>total_audience</th>
+      <th>movies</th>
+      <th>rate</th>
+      <th>audience</th>
+      <th>index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>郑国霖</td>
+      <td>2</td>
+      <td>10.9</td>
+      <td>64698.0</td>
+      <td>[老九门, 青云志]</td>
+      <td>5.45</td>
+      <td>32349.0</td>
+      <td>0.299686</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>朱袁员</td>
+      <td>1</td>
+      <td>5.0</td>
+      <td>105.0</td>
+      <td>[毛泽东三兄弟]</td>
+      <td>5.00</td>
+      <td>105.0</td>
+      <td>-0.895912</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>中村绘里子</td>
+      <td>1</td>
+      <td>7.1</td>
+      <td>1766.0</td>
+      <td>[从前有座灵剑山 霊剣山 星屑たちの宴]</td>
+      <td>7.10</td>
+      <td>1766.0</td>
+      <td>0.413805</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>李曼筠</td>
+      <td>1</td>
+      <td>2.7</td>
+      <td>189.0</td>
+      <td>[少女龙婆]</td>
+      <td>2.70</td>
+      <td>189.0</td>
+      <td>-2.275758</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>宋运成</td>
+      <td>1</td>
+      <td>5.3</td>
+      <td>77.0</td>
+      <td>[寒山令]</td>
+      <td>5.30</td>
+      <td>77.0</td>
+      <td>-0.716422</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<p>按照index指数，对出演一部以上节目的演员进行排序，找出指数最高的演员</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 指数最高的演员</span></div><div class="line">actor_frame = actor_frame[actor_frame[<span class="string">'count'</span>] &gt; <span class="number">1</span>].sort_values(by=<span class="string">'index'</span>, ascending=<span class="keyword">False</span>)</div><div class="line">actor_frame.head()</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>count</th>
+      <th>total_rate</th>
+      <th>total_audience</th>
+      <th>movies</th>
+      <th>rate</th>
+      <th>audience</th>
+      <th>index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2795</th>
+      <td>张涵予</td>
+      <td>2</td>
+      <td>13.0</td>
+      <td>483216.0</td>
+      <td>[长城 The Great Wall, 湄公河行动]</td>
+      <td>6.50</td>
+      <td>241608.0</td>
+      <td>6.934855</td>
+    </tr>
+    <tr>
+      <th>2377</th>
+      <td>陈宝国</td>
+      <td>2</td>
+      <td>15.1</td>
+      <td>296418.0</td>
+      <td>[信者无敌, 湄公河行动]</td>
+      <td>7.55</td>
+      <td>148209.0</td>
+      <td>4.886045</td>
+    </tr>
+    <tr>
+      <th>2010</th>
+      <td>张雨绮</td>
+      <td>2</td>
+      <td>9.8</td>
+      <td>377109.0</td>
+      <td>[蒸发太平洋 Lost in the Pacific, 美人鱼]</td>
+      <td>4.90</td>
+      <td>188554.5</td>
+      <td>4.451055</td>
+    </tr>
+    <tr>
+      <th>783</th>
+      <td>赵健</td>
+      <td>2</td>
+      <td>13.1</td>
+      <td>304126.0</td>
+      <td>[九州天空城, 湄公河行动]</td>
+      <td>6.55</td>
+      <td>152063.0</td>
+      <td>4.395645</td>
+    </tr>
+    <tr>
+      <th>534</th>
+      <td>卢惠光</td>
+      <td>2</td>
+      <td>13.2</td>
+      <td>297207.0</td>
+      <td>[四平青年之浩哥大战古惑仔, 湄公河行动]</td>
+      <td>6.60</td>
+      <td>148603.5</td>
+      <td>4.326433</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+<p>导演的index指数
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#导演的index指数</span></div><div class="line">director_frame[<span class="string">'rate'</span>] = director_frame.total_rate/director_frame[<span class="string">'count'</span>]</div><div class="line">director_frame[<span class="string">'audience'</span>] = director_frame.total_audience/director_frame[<span class="string">'count'</span>]</div><div class="line">director_frame[<span class="string">'index'</span>] = (director_frame.rate - director_frame.rate.mean())/director_frame.rate.std() + (director_frame.audience - director_frame.audience.mean())/director_frame.audience.std()</div><div class="line">director_frame.head()</div></pre></td></tr></table></figure></p>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>count</th>
+      <th>total_rate</th>
+      <th>total_audience</th>
+      <th>movies</th>
+      <th>rate</th>
+      <th>audience</th>
+      <th>index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>余庆</td>
+      <td>1</td>
+      <td>6.3</td>
+      <td>509.0</td>
+      <td>[特殊嫌疑犯]</td>
+      <td>6.3</td>
+      <td>509.0</td>
+      <td>-0.105881</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>马伟豪</td>
+      <td>1</td>
+      <td>4.9</td>
+      <td>7033.0</td>
+      <td>[我们的十年]</td>
+      <td>4.9</td>
+      <td>7033.0</td>
+      <td>-0.653301</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>深圳卫视</td>
+      <td>1</td>
+      <td>8.1</td>
+      <td>554.0</td>
+      <td>[深圳卫视“时间的朋友”2016跨年演讲]</td>
+      <td>8.1</td>
+      <td>554.0</td>
+      <td>0.858370</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>程丹</td>
+      <td>1</td>
+      <td>7.9</td>
+      <td>209.0</td>
+      <td>[中国文房四宝]</td>
+      <td>7.9</td>
+      <td>209.0</td>
+      <td>0.740731</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>赖俊羽</td>
+      <td>1</td>
+      <td>2.6</td>
+      <td>4214.0</td>
+      <td>[泡沫之夏]</td>
+      <td>2.6</td>
+      <td>4214.0</td>
+      <td>-1.970680</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#导演的index指数排名</span></div><div class="line">director_frame = director_frame.sort_values(by=<span class="string">'index'</span>, ascending=<span class="keyword">False</span>)</div><div class="line">director_frame.head()</div></pre></td></tr></table></figure>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>count</th>
+      <th>total_rate</th>
+      <th>total_audience</th>
+      <th>movies</th>
+      <th>rate</th>
+      <th>audience</th>
+      <th>index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>447</th>
+      <td>周星驰</td>
+      <td>1</td>
+      <td>6.8</td>
+      <td>372061.0</td>
+      <td>[美人鱼]</td>
+      <td>6.8</td>
+      <td>372061.0</td>
+      <td>11.635786</td>
+    </tr>
+    <tr>
+      <th>464</th>
+      <td>林超贤</td>
+      <td>1</td>
+      <td>8.0</td>
+      <td>296258.0</td>
+      <td>[湄公河行动]</td>
+      <td>8.0</td>
+      <td>296258.0</td>
+      <td>9.936759</td>
+    </tr>
+    <tr>
+      <th>207</th>
+      <td>周申</td>
+      <td>1</td>
+      <td>8.3</td>
+      <td>229548.0</td>
+      <td>[驴得水]</td>
+      <td>8.3</td>
+      <td>229548.0</td>
+      <td>8.037109</td>
+    </tr>
+    <tr>
+      <th>143</th>
+      <td>刘露</td>
+      <td>1</td>
+      <td>8.3</td>
+      <td>229548.0</td>
+      <td>[驴得水]</td>
+      <td>8.3</td>
+      <td>229548.0</td>
+      <td>8.037109</td>
+    </tr>
+    <tr>
+      <th>463</th>
+      <td>曾国祥</td>
+      <td>1</td>
+      <td>7.6</td>
+      <td>210274.0</td>
+      <td>[七月与安生]</td>
+      <td>7.6</td>
+      <td>210274.0</td>
+      <td>7.067446</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+<p>电影类型的index指数及index指数排名
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 电影类型的index指数及index指数排名</span></div><div class="line">genre_frame[<span class="string">'rate'</span>] = genre_frame.total_rate/genre_frame[<span class="string">'count'</span>]</div><div class="line">genre_frame[<span class="string">'audience'</span>] = genre_frame.total_audience/genre_frame[<span class="string">'count'</span>]</div><div class="line">genre_frame[<span class="string">'index'</span>] = (genre_frame.rate - genre_frame.rate.mean())/genre_frame.rate.std() + (genre_frame.audience - genre_frame.audience.mean())/genre_frame.audience.std()</div><div class="line">genre_frame = genre_frame.sort_values(by=<span class="string">'index'</span>, ascending=<span class="keyword">False</span>)</div><div class="line">genre_frame.head()</div></pre></td></tr></table></figure></p>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>count</th>
+      <th>total_rate</th>
+      <th>total_audience</th>
+      <th>movies</th>
+      <th>rate</th>
+      <th>audience</th>
+      <th>index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>犯罪</td>
+      <td>33</td>
+      <td>197.5</td>
+      <td>1125388.0</td>
+      <td>[拐人 人さらい, 诡梦凶铃, 特殊嫌疑犯, 浴缸神探, 爱的追踪, 轻松+愉快, 十宗罪,…</td>
+      <td>5.984848</td>
+      <td>34102.666667</td>
+      <td>3.119047</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>动作</td>
+      <td>49</td>
+      <td>268.3</td>
+      <td>1286648.0</td>
+      <td>[半面人 三剑豪之半面人, 全职法师, 绝战, 白雪公主和三只小猪, 喜乐长安, 看见我和你…</td>
+      <td>5.475510</td>
+      <td>26258.122449</td>
+      <td>1.768434</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>纪录片</td>
+      <td>51</td>
+      <td>424.7</td>
+      <td>111765.0</td>
+      <td>[拐人 人さらい, 张梁记, 书房里的中国：纸寿千年, 米歇尔·福柯, 跑步日记, 聆听中国…</td>
+      <td>8.327451</td>
+      <td>2191.470588</td>
+      <td>1.639117</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>奇幻</td>
+      <td>50</td>
+      <td>269.1</td>
+      <td>1257842.0</td>
+      <td>[半面人 三剑豪之半面人, 年兽大作战, 假如我有超能力, 孙悟空七打九尾狐, 暮夜传说, …</td>
+      <td>5.382000</td>
+      <td>25156.840000</td>
+      <td>1.558814</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>传记</td>
+      <td>5</td>
+      <td>39.1</td>
+      <td>1853.0</td>
+      <td>[摇摇晃晃的人间, 毛泽东三兄弟, 创新之路, 海棠依旧, 木心物语]</td>
+      <td>7.820000</td>
+      <td>370.600000</td>
+      <td>0.971681</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+<h4 id="根据Index电影指数我们可以得出以下结论："><a href="#根据Index电影指数我们可以得出以下结论：" class="headerlink" title="根据Index电影指数我们可以得出以下结论："></a>根据Index电影指数我们可以得出以下结论：</h4><ol>
+<li>2016年度华语影视圈最佳影片：《美人鱼》</li>
+<li>2016年度华语影视圈最佳演员：张涵予</li>
+<li>2016年度华语影视圈最佳导演：孔笙</li>
+<li>2016年度华语观众最喜欢的影视类型：犯罪（难道是大家心里都有一颗想要犯罪的心？）</li>
+</ol>
+</div><script type="text/javascript" src="/js/share.js?v=0.0.0" async></script><a data-url="http://goudanlee.com/2017/03/02/豆瓣影视数据分析探索/" data-id="cj334vhg10021rytw5611bbg1" class="article-share-link">分享</a><div class="tags"><a href="/tags/Python/">Python</a><a href="/tags/DAND/">DAND</a><a href="/tags/数据分析/">数据分析</a><a href="/tags/Pandas/">Pandas</a></div><div class="post-nav"><a href="/2017/04/24/数据科学家与数据工程师/" class="pre">数据科学家与数据工程师</a><a href="/2017/02/24/Python回调函数的理解/" class="next">Python回调函数的理解(转)</a></div><div id="disqus_thread"><div class="btn_click_load"><button class="disqus_click_btn">阅读评论 「请确保 disqus.com 可以正常加载」</button></div><script>var disqus_shortname = 'goudanlee-com';
+var disqus_identifier = '2017/03/02/豆瓣影视数据分析探索/';
+var disqus_title = '利用Python进行豆瓣影视数据分析';
+var disqus_url = 'http://goudanlee.com/2017/03/02/豆瓣影视数据分析探索/';
+$('.btn_click_load').click(function() {
+  (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+  $('.btn_click_load').css('display','none');
+});
+$.ajax({
+  url: 'https://disqus.com/favicon.ico',
+  timeout: 3000,
+  type: 'GET',
+  success: (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    $('.btn_click_load').css('display','none');
+  })(),
+  error: function() {
+    $('.btn_click_load').css('display','block');
+  }
+});</script><script id="dsq-count-scr" src="//goudanlee-com.disqus.com/count.js" async></script></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><div class="search-form"><input id="local-search-input" placeholder="Search" type="text" name="q" results="0"/><div id="local-search-result"></div></div></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/DAND/">DAND</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Git/">Git</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Hexo/">Hexo</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Oracle/">Oracle</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Python/">Python</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Shell/">Shell</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/数据分析/">数据分析</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/DAND/" style="font-size: 15px;">DAND</a> <a href="/tags/Python/" style="font-size: 15px;">Python</a> <a href="/tags/lxml/" style="font-size: 15px;">lxml</a> <a href="/tags/HEXO/" style="font-size: 15px;">HEXO</a> <a href="/tags/Oracle/" style="font-size: 15px;">Oracle</a> <a href="/tags/Redhat/" style="font-size: 15px;">Redhat</a> <a href="/tags/CentOS/" style="font-size: 15px;">CentOS</a> <a href="/tags/SNMP/" style="font-size: 15px;">SNMP</a> <a href="/tags/BeatifulSoup/" style="font-size: 15px;">BeatifulSoup</a> <a href="/tags/数据分析/" style="font-size: 15px;">数据分析</a> <a href="/tags/MongoDB/" style="font-size: 15px;">MongoDB</a> <a href="/tags/Git/" style="font-size: 15px;">Git</a> <a href="/tags/Linux/" style="font-size: 15px;">Linux</a> <a href="/tags/Shell/" style="font-size: 15px;">Shell</a> <a href="/tags/Zabbix/" style="font-size: 15px;">Zabbix</a> <a href="/tags/Data-scientist/" style="font-size: 15px;">Data scientist</a> <a href="/tags/Pandas/" style="font-size: 15px;">Pandas</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2017/05/20/dand-osm/">DAND“整理 OpenStreetMap 数据”学习总结</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/04/24/数据科学家与数据工程师/">数据科学家与数据工程师</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/03/02/豆瓣影视数据分析探索/">利用Python进行豆瓣影视数据分析</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/02/24/Python回调函数的理解/">Python回调函数的理解(转)</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/02/09/shell-monitor/">shell实现web服务进程监控并自动重启</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/11/12/git学习笔记/">git学习笔记</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/11/02/HelloHEXO/">Hello HEXO</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/29/Beatiful-Soup的效率问题/">Beatiful Soup的效率问题</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/14/oracle-index/index/">Oracle索引原理</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/08/03/Python3中urllib详细使用方法/">Python3中urllib详细使用方法</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-comment-o"> 最近评论</i></div><script type="text/javascript" src="//goudanlee-com.disqus.com/recent_comments_widget.js?num_items=5&amp;hide_avatars=1&amp;avatar_size=32&amp;excerpt_length=20&amp;hide_mods=1"></script></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="https://github.com/goudanlee/goudanlee.github.io" title="Github" target="_blank">Github</a><ul></ul><a href="https://www.zhihu.com/people/li-gou-dan-11-22/activities" title="知乎" target="_blank">知乎</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2017 <a href="/." rel="nofollow">GoudanLee.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a id="rocket" href="#top" class="show"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.0.47/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.0.47/jquery.fancybox.min.css"><script type="text/javascript" src="/js/search.js?v=0.0.0"></script><script>var search_path = 'search.xml';
+if (search_path.length == 0) {
+   search_path = 'search.xml';
+}
+var path = '/' + search_path;
+searchFunc(path, 'local-search-input', 'local-search-result');
+</script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
