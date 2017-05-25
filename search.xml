@@ -59,6 +59,8 @@ n n =每个数据集中的值的数量</p>
             
             <tag> R </tag>
             
+            <tag> DAND </tag>
+            
         </tags>
         
     </entry>
@@ -124,9 +126,9 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> Python </tag>
-            
             <tag> DAND </tag>
+            
+            <tag> Python </tag>
             
             <tag> 数据分析 </tag>
             
@@ -218,6 +220,8 @@ MongoDB - MongoDB Manual 3.4</p>
         
         
         <tags>
+            
+            <tag> DAND </tag>
             
             <tag> 数据分析 </tag>
             
@@ -1367,9 +1371,9 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> Python </tag>
-            
             <tag> DAND </tag>
+            
+            <tag> Python </tag>
             
             <tag> 数据分析 </tag>
             
