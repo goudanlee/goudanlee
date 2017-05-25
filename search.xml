@@ -3,6 +3,67 @@
   
     
     <entry>
+      <title><![CDATA[Pearson, Kendall, Spearman三种相关性的差异]]></title>
+      <url>/2017/05/25/Correlation-Pearson-Kendall-Spearman/</url>
+      <content type="html"><![CDATA[<h3 id="相关性（Pearson，Kendall，Spearman）"><a href="#相关性（Pearson，Kendall，Spearman）" class="headerlink" title="相关性（Pearson，Kendall，Spearman）"></a>相关性（Pearson，Kendall，Spearman）</h3><p>最近在学习R语言时，需要对两个连续变量进行相关性分析，通过查看帮助文档，发现cor.test()常用的相关性方法有三种，其中出现最为频繁的就是皮尔逊相关系数了，这里收集整理一下这三种方法的区别。</p>
+<figure class="highlight r"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">cor.test(x, y,</div><div class="line">         alternative = c(<span class="string">"two.sided"</span>, <span class="string">"less"</span>, <span class="string">"greater"</span>),</div><div class="line">         method = c(<span class="string">"pearson"</span>, <span class="string">"kendall"</span>, <span class="string">"spearman"</span>),</div><div class="line">         exact = <span class="literal">NULL</span>, conf.level = <span class="number">0.95</span>, continuity = <span class="literal">FALSE</span>, <span class="keyword">...</span>)</div></pre></td></tr></table></figure>
+<p>相关性是一种双变量分析，它衡量两个变量之间关联的强度和关系的方向。关于关系的强度，相关系数的值在+1和-1之间变化。当相关系数的值在±1左右时，这被认为是两个变量之间的完美关联度。由于相关系数值为0，两个变量之间的关系将较弱。关系的方向只是+（表示变量之间的正相关）或 - （表示变量之间的负相关）相关性的符号。通常在统计学中，我们使用三种类型的相关性：Pearson相关性，Kendall秩相关性，Spearman相关.</p>
+<h3 id="Pearson-r-correlation-皮尔逊相关"><a href="#Pearson-r-correlation-皮尔逊相关" class="headerlink" title="Pearson r correlation 皮尔逊相关"></a>Pearson r correlation 皮尔逊相关</h3><p>Pearson r相关性是用于测量线性相关变量之间关系程度的最广泛使用的相关统计量。例如，在股票市场，如果我们想衡量两个股票之间的相互关系，则用Pearson r相关度来衡量两者之间的关系。Point-biserial相关性是用Pearson相关公式进行的，除了其中一个变量是二分的。以下公式用于计算Pearson r相关：
+<img src="/2017/05/25/Correlation-Pearson-Kendall-Spearman/1.jpg" alt="Pearson r correlation" title="Pearson r correlation"></p>
+<p>r = Pearson r相关系数
+N =每个数据集中的值数
+Σxy=成对分数的
+乘积之和Σx= x分数
+之和Σy= y分数
+Σx2=平方x分数的和
+Σy2=平方y得分的和</p>
+<h4 id="Pearson相关性可以检查的研究问题的类型："><a href="#Pearson相关性可以检查的研究问题的类型：" class="headerlink" title="Pearson相关性可以检查的研究问题的类型："></a>Pearson相关性可以检查的研究问题的类型：</h4><p>年龄之间有统计学意义上的关系，以年数衡量，高度以英寸衡量？
+温度，度数华氏度和冰淇淋销售之间是否有收入关系？
+工作满意度之间是否存在关系，由JSS衡量，收入以美元衡量？</p>
+<h4 id="假设"><a href="#假设" class="headerlink" title="假设"></a>假设</h4><p>对于Pearson r相关性，两个变量都应该是正态分布的（正态分布变量具有钟形曲线）。其他假设包括线性和同态性。线性度假设分析中每个变量之间存在直线关系，同质性假定数据在回归线上正态分布。</p>
+<h4 id="行为和解释皮尔逊相关"><a href="#行为和解释皮尔逊相关" class="headerlink" title="行为和解释皮尔逊相关"></a>行为和解释皮尔逊相关</h4><h4 id="关键术语"><a href="#关键术语" class="headerlink" title="关键术语"></a>关键术语</h4><ul>
+<li><strong>效应大小：</strong> Cohen的标准将用于评估相关系数，以确定关系的强度或效应大小，其中.10和.29之间的相关系数表示小关联.30和.49之间的系数表示介质关联，以及.50以上的系数表示大的关联或关系。</li>
+<li><strong>连续数据：</strong> 间隔或比率级别的数据。这种类型的数据具有相邻单元之间的幅度和相等间隔的属性。相邻单元之间的相等间隔意味着在刻度尺上的相邻单元之间有相等量的被测量的变量。一个例子就是年龄。年龄从21岁增加到22岁将与60岁至61岁的年龄相同。</li>
+</ul>
+<h3 id="Kendall-rank-correlation-肯德尔等级相关"><a href="#Kendall-rank-correlation-肯德尔等级相关" class="headerlink" title="Kendall rank correlation 肯德尔等级相关"></a>Kendall rank correlation 肯德尔等级相关</h3><p>肯德尔等级相关是一个非参数检验，用于衡量两个变量之间依赖的强度。如果我们考虑两个样本a和b，其中每个样本大小为 n，我们知道与ab的配对总数为 n（ n -1）/ 2。  以下公式用于计算肯德尔秩相关值：
+<img src="/2017/05/25/Correlation-Pearson-Kendall-Spearman/2.jpg" alt="Kendall rank correlation" title="Kendall rank correlation">
+Nc =一致
+Nd的数量=不一致的数量</p>
+<h4 id="行为和解释肯德尔相关"><a href="#行为和解释肯德尔相关" class="headerlink" title="行为和解释肯德尔相关"></a>行为和解释肯德尔相关</h4><h4 id="关键术语-1"><a href="#关键术语-1" class="headerlink" title="关键术语"></a>关键术语</h4><ul>
+<li><strong>一致：</strong> 以相同的方式订购。</li>
+<li><strong>不一致：</strong> 有所不同。</li>
+</ul>
+<h3 id="Spearman-rank-correlation-斯皮尔曼等级相关"><a href="#Spearman-rank-correlation-斯皮尔曼等级相关" class="headerlink" title="Spearman rank correlation 斯皮尔曼等级相关"></a>Spearman rank correlation 斯皮尔曼等级相关</h3><p>斯派曼秩相关是一个非参数测试，用于测量两个变量之间的关联程度。它是由斯皮尔曼开发的，因此称之为斯皮尔曼等级相关。斯皮尔曼等级相关性测试对于数据分布不承担任何假设，而是在以至少为次序的尺度上测量变量时进行适当的相关分析。
+以下公式用于计算Spearman秩相关：
+<img src="/2017/05/25/Correlation-Pearson-Kendall-Spearman/2.jpg" alt="Spearman rank correlation" title="Spearman rank correlation">
+P = Spearman秩相关
+di =相应值Xi和Yi的行之间的差
+n n =每个数据集中的值的数量</p>
+<h4 id="Spearman相关答案"><a href="#Spearman相关答案" class="headerlink" title="Spearman相关答案"></a>Spearman相关答案</h4><p>参与者对两个Likert量表问题的回答之间是否存在统计学上的显着关系？
+马匹在种族和马的年龄之间的排名有统计学意义上的关系吗？</p>
+<h4 id="假设-1"><a href="#假设-1" class="headerlink" title="假设"></a>假设</h4><p>Spearman等级相关性测试对于分布没有做任何假设。Spearman rho相关的假设是数据必须至少是序数，一个变量上的分数必须与其他变量单调相关。</p>
+<h4 id="行为和解释Spearman相关"><a href="#行为和解释Spearman相关" class="headerlink" title="行为和解释Spearman相关"></a>行为和解释Spearman相关</h4><h4 id="关键术语-2"><a href="#关键术语-2" class="headerlink" title="关键术语"></a>关键术语</h4><ul>
+<li><strong>效应大小：</strong> Cohen的标准将用于评估相关系数，以确定关系的强度或效应大小，其中系数在.10和.29之间表示小关联; 系数介于30.30和.49之间。并且.50及以上的系数表示大的关联或关系。</li>
+<li><strong>有序数据：</strong> 有序量表对待测量的项目进行排序，以指示它们是否具有更多，更少或相同量的被测量变量。序数量表使我们能够确定X&gt; Y，Y&gt; X，或者如果X = Y。一个例子是排序舞蹈比赛的参与者。排名第一的舞者是比排名第二的舞者更好的舞者。排名第二的舞者是比排名第三的舞者更好的舞者，等等。虽然这个规模使我们能够确定大于，小于或等于，但它仍然没有定义单位之间关系的大小。</li>
+</ul>
+]]></content>
+      
+        <categories>
+            
+            <category> R </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> R </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[DAND“整理 OpenStreetMap 数据”学习总结]]></title>
       <url>/2017/05/20/dand-osm/</url>
       <content type="html"><![CDATA[<p>讲真，一开始让我写一篇这样的文章我是拒绝的，因为我以前总是觉得，学习是自己的事情，学到多少，学了什么，自己清楚就好。不过，在优达学城近两个月的学习之后，我逐步改变了观点，正如优达优等生互助班所倡导的“探索、自律、分享”的学习理念，实际上学习过程中的积累和分享的过程，也是提升学习兴趣的一个非常重要的点。所以，今天也想在这里汇总一下关于DAND课程里P3项目“整理 OpenStreetMap 数据”这阶段的学习总结，同时也记录一下自己的学习心路历程，这里特别感谢一下优等生互助班导师——鱼头同学的各种鼓励和支持@Clark Yu，非常负责任的一位导师，为了我们的学习进度也是操碎了心 /捂脸
