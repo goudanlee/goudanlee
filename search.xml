@@ -3,6 +3,27 @@
   
     
     <entry>
+      <title><![CDATA[靈魂歌手]]></title>
+      <url>/2017/06/01/%E9%9D%88%E9%AD%82%E6%AD%8C%E6%89%8B/</url>
+      <content type="html"><![CDATA[<img src="/2017/06/01/靈魂歌手/Bruceliang.jpg" alt="靈魂歌手" title="靈魂歌手">
+<h6 id="爭著去做奴隸"><a href="#爭著去做奴隸" class="headerlink" title="爭著去做奴隸"></a>爭著去做奴隸</h6><h6 id="急著拋棄自己"><a href="#急著拋棄自己" class="headerlink" title="急著拋棄自己"></a>急著拋棄自己</h6><h6 id="你本來是英雄"><a href="#你本來是英雄" class="headerlink" title="你本來是英雄"></a>你本來是英雄</h6><h6 id="直到變得-更加恐懼"><a href="#直到變得-更加恐懼" class="headerlink" title="直到變得 更加恐懼"></a>直到變得 更加恐懼</h6>]]></content>
+      
+        <categories>
+            
+            <category> Hexo </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> 靈魂歌手 </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[Pearson, Kendall, Spearman三种相关性的差异]]></title>
       <url>/2017/05/25/Correlation-Pearson-Kendall-Spearman/</url>
       <content type="html"><![CDATA[<h3 id="相关性（Pearson，Kendall，Spearman）"><a href="#相关性（Pearson，Kendall，Spearman）" class="headerlink" title="相关性（Pearson，Kendall，Spearman）"></a>相关性（Pearson，Kendall，Spearman）</h3><p>最近在学习R语言时，需要对两个连续变量进行相关性分析，通过查看帮助文档，发现cor.test()常用的相关性方法有三种，其中出现最为频繁的就是皮尔逊相关系数了，这里收集整理一下这三种方法的区别。</p>
@@ -1985,9 +2006,9 @@ Zabbix 之SNMP配置 <a href="http://www.linuxidc.com/Linux/2013-09/90263.htm" t
         
         <tags>
             
-            <tag> Linux </tag>
-            
             <tag> Oracle </tag>
+            
+            <tag> Linux </tag>
             
             <tag> Shell </tag>
             
