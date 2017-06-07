@@ -3,6 +3,54 @@
   
     
     <entry>
+      <title><![CDATA[Histogram how to select bins]]></title>
+      <url>/2017/06/07/Histogram-how-to-select-bins/</url>
+      <content type="html"><![CDATA[<p>今天在进行EDA数据探索时，使用的数据集里有比较多的字段存在异常值的情况，在使用histogram探索这些数据时，这种异常值的处理无非就是调整直方图的参数，过滤异常值等，最后生成一个normal histogram。在调试过程中，产生了一个疑惑，究竟histogram的bins 以及 binwidth到底如何确定呢？</p>
+<p>实际上，对一个数据集来说，并没有最好的bins一说，只能根据数据集的特定进行不断的调整，获得一个相对来说最优的bins，使得直方图可以清楚的反应数据的分布情况。</p>
+<h3 id="Number-of-bins-and-width"><a href="#Number-of-bins-and-width" class="headerlink" title="Number of bins and width"></a>Number of bins and width</h3><p>There is no “best” number of bins, and different bin sizes can reveal different features of the data. Grouping data is at least as old as Graunt’s work in the 17th century, but no systematic guidelines were given[10] until Sturges’s work in 1926.[11]</p>
+<p>Using wider bins where the density is low reduces noise due to sampling randomness; using narrower bins where the density is high (so the signal drowns the noise) gives greater precision to the density estimation. Thus varying the bin-width within a histogram can be beneficial. Nonetheless, equal-width bins are widely used.</p>
+<p>Some theoreticians have attempted to determine an optimal number of bins, but these methods generally make strong assumptions about the shape of the distribution. Depending on the actual data distribution and the goals of the analysis, different bin widths may be appropriate, so experimentation is usually needed to determine an appropriate width. There are, however, various useful guidelines and rules of thumb.[</p>
+<h3 id="数量和宽度"><a href="#数量和宽度" class="headerlink" title="数量和宽度"></a>数量和宽度</h3><p>没有“最好”的数据箱，不同的大小可以显示数据的不同特征。分组数据至少与Graunt在17世纪的工作一样古老，但在1926年Sturges的工作之前没有给出系统的指导原则[10]。[11]</p>
+<p>使用较宽的密度较低的区域可减少由于采样随机性引起的噪声; 使用密度较高的较窄的箱体（因此信号淹没噪声）可以提供更高的密度估计精度。因此，改变直方图内的二进制位宽度是有益的。尽管如此，宽宽度相同的机箱也被广泛使用。</p>
+<p>一些理论家试图确定最佳数量的分数，但是这些方法通常对分布的形状做出强烈的假设。根据实际数据分布和分析目标，不同的箱宽可能是适当的，因此通常需要进行实验来确定适当的宽度。然而，有各种有用的指导方针和经验法则。</p>
+<p>wikipedia提供的方法：
+<a href="https://en.wikipedia.org/wiki/Histogram" target="_blank" rel="external">https://en.wikipedia.org/wiki/Histogram</a></p>
+<p>在stackoverflow上也有一个比较不错的方法，实际上是使用了Freedman-Diaconis rule：</p>
+<p>The Freedman-Diaconis rule is very robust and works well in practice. The bin-width is set to</p>
+<p>h=2∗IQR∗n^1/3 </p>
+<p>So the number of bins is (max-min)/h.</p>
+<p>In base R, you can use<br><figure class="highlight r"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hist(x,breaks=<span class="string">"FD"</span>)</div></pre></td></tr></table></figure></p>
+<p>For other plotting libraries without this option (e.g. ggplot2), you can calculate binwidth as:
+<figure class="highlight r"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">bins &lt;- diff(range(x)) / (<span class="number">2</span> * IQR(x) / length(x)^(<span class="number">1</span>/<span class="number">3</span>))</div><div class="line"></div><div class="line"><span class="comment"># for example</span></div><div class="line">ggplot() + geom_histogram(aes(x), bins = bw)</div></pre></td></tr></table></figure></p>
+<p>Freedman-Diaconis rule基于由IQR表示的四分位数范围。它将Scott的规则的3.5σ替换为2 IQR，其对数据中的异常值的标准偏差较不敏感。总的来说这个方法在处理直方图时效果不错，而且能避开异常值对直方图的影响。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><h4 id="Freedman-Diaconis-rule"><a href="#Freedman-Diaconis-rule" class="headerlink" title="Freedman-Diaconis rule"></a>Freedman-Diaconis rule</h4><p>The Freedman–Diaconis rule is:
+<img src="/2017/06/07/Histogram-how-to-select-bins/1.svg" alt="Freedman-Diaconis rule" title="Freedman-Diaconis rule"></p>
+<p>The number of bins k can be assigned directly or can be calculated from a suggested bin width h as:
+<img src="/2017/06/07/Histogram-how-to-select-bins/2.svg" alt="Number of bins k" title="Number of bins k"></p>
+<p>在R中有方便的自带函数可以使用,ggplot使用稍微麻烦一点
+<figure class="highlight r"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># hist()</span></div><div class="line">hist(x,breaks=<span class="string">"FD"</span>)</div><div class="line"></div><div class="line"><span class="comment"># ggplot</span></div><div class="line">bins &lt;- diff(range(x)) / (<span class="number">2</span> * IQR(x) / length(x)^(<span class="number">1</span>/<span class="number">3</span>))</div><div class="line">ggplot() + geom_histogram(aes(x), bins = bw)</div><div class="line"></div><div class="line"><span class="comment"># ggplot</span></div><div class="line">bw &lt;- (<span class="number">2</span> * IQR(x) / length(x)^(<span class="number">1</span>/<span class="number">3</span>))</div><div class="line">ggplot() + geom_histogram(aes(x), binwidth = bw)</div></pre></td></tr></table></figure></p>
+]]></content>
+      
+        <categories>
+            
+            <category> 数据分析 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> 数据分析 </tag>
+            
+            <tag> R </tag>
+            
+            <tag> DAND </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[靈魂歌手]]></title>
       <url>/2017/06/01/%E9%9D%88%E9%AD%82%E6%AD%8C%E6%89%8B/</url>
       <content type="html"><![CDATA[<img src="/2017/06/01/靈魂歌手/Bruceliang.jpg" alt="靈魂歌手" title="靈魂歌手">
@@ -177,9 +225,9 @@ MongoDB - MongoDB Manual 3.4</p>
             
             <tag> Python </tag>
             
-            <tag> DAND </tag>
-            
             <tag> 数据分析 </tag>
+            
+            <tag> DAND </tag>
             
             <tag> MongoDB </tag>
             
@@ -270,9 +318,9 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> DAND </tag>
-            
             <tag> 数据分析 </tag>
+            
+            <tag> DAND </tag>
             
             <tag> Data scientist </tag>
             
@@ -1422,9 +1470,9 @@ MongoDB - MongoDB Manual 3.4</p>
             
             <tag> Python </tag>
             
-            <tag> DAND </tag>
-            
             <tag> 数据分析 </tag>
+            
+            <tag> DAND </tag>
             
             <tag> Pandas </tag>
             
@@ -2006,9 +2054,9 @@ Zabbix 之SNMP配置 <a href="http://www.linuxidc.com/Linux/2013-09/90263.htm" t
         
         <tags>
             
-            <tag> Linux </tag>
-            
             <tag> Oracle </tag>
+            
+            <tag> Linux </tag>
             
             <tag> Shell </tag>
             
