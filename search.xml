@@ -40,11 +40,11 @@
         
         <tags>
             
-            <tag> 数据分析 </tag>
-            
             <tag> R </tag>
             
             <tag> DAND </tag>
+            
+            <tag> 数据分析 </tag>
             
         </tags>
         
@@ -115,6 +115,7 @@ n n =每个数据集中的值的数量</p>
 <li><strong>效应大小：</strong> Cohen的标准将用于评估相关系数，以确定关系的强度或效应大小，其中系数在.10和.29之间表示小关联; 系数介于30.30和.49之间。并且.50及以上的系数表示大的关联或关系。</li>
 <li><strong>有序数据：</strong> 有序量表对待测量的项目进行排序，以指示它们是否具有更多，更少或相同量的被测量变量。序数量表使我们能够确定X&gt; Y，Y&gt; X，或者如果X = Y。一个例子是排序舞蹈比赛的参与者。排名第一的舞者是比排名第二的舞者更好的舞者。排名第二的舞者是比排名第三的舞者更好的舞者，等等。虽然这个规模使我们能够确定大于，小于或等于，但它仍然没有定义单位之间关系的大小。</li>
 </ul>
+<h3 id="相关系数强度"><a href="#相关系数强度" class="headerlink" title="相关系数强度"></a>相关系数强度</h3><p>相关系数<br>0.8-1.0     极强相关<br>0.6-0.8     强相关<br>0.4-0.6     中等程度相关<br>0.2-0.4     弱相关<br>0.0-0.2     极弱相关或无相关  </p>
 ]]></content>
       
         <categories>
@@ -223,11 +224,11 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> 数据分析 </tag>
+            <tag> Python </tag>
             
             <tag> DAND </tag>
             
-            <tag> Python </tag>
+            <tag> 数据分析 </tag>
             
             <tag> MongoDB </tag>
             
@@ -318,9 +319,9 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> 数据分析 </tag>
-            
             <tag> DAND </tag>
+            
+            <tag> 数据分析 </tag>
             
             <tag> Data scientist </tag>
             
@@ -1468,11 +1469,11 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> 数据分析 </tag>
+            <tag> Python </tag>
             
             <tag> DAND </tag>
             
-            <tag> Python </tag>
+            <tag> 数据分析 </tag>
             
             <tag> Pandas </tag>
             
@@ -1804,7 +1805,7 @@ Enter user-name:
     </entry>
     
     <entry>
-      <title><![CDATA[windows及linux环境下永久修改pip镜像源的方法]]></title>
+      <title><![CDATA[windows、linux修改pip镜像源及conda修改镜像源]]></title>
       <url>/2016/04/10/pip-source/</url>
       <content type="html"><![CDATA[<h4 id="一、在windows环境下修改pip镜像源的方法-以python3-5为例"><a href="#一、在windows环境下修改pip镜像源的方法-以python3-5为例" class="headerlink" title="一、在windows环境下修改pip镜像源的方法(以python3.5为例)"></a>一、在windows环境下修改pip镜像源的方法(以python3.5为例)</h4><p>(1):在windows文件管理器中,输入 %APPDATA%<br><img src="/2016/04/10/pip-source/1.jpg" alt="图 1" title="图 1"> </p>
 <p>(2):会定位到一个新的目录下，在该目录下新建pip文件夹，然后到pip文件夹里面去新建个pip.ini文件<br><img src="/2016/04/10/pip-source/2.jpg" alt="图 2" title="图 2"> </p>
@@ -1815,6 +1816,12 @@ Enter user-name:
 <p>(2):在创建好的.pip文件夹中创建名为pip.conf的文件</p>
 <p>(3):在pip.conf文件中输入以下内容，ok!!!</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">[<span class="keyword">global</span>]</div><div class="line">timeout = <span class="number">6000</span></div><div class="line">index-url = http://pypi.douban.com/simple</div><div class="line">trusted-host = pypi.douban.com</div></pre></td></tr></table></figure>
+<h4 id="三、conda环境下更新"><a href="#三、conda环境下更新" class="headerlink" title="三、conda环境下更新"></a>三、conda环境下更新</h4><p>Anaconda 是一个用于科学计算的 Python 发行版，支持 Linux, Mac, Windows, 包含了众多流行的科学计算、数据分析的 Python 包。</p>
+<p>Anaconda 安装包可以到 <a href="https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/" target="_blank" rel="external">https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/</a> 下载。</p>
+<p>TUNA 还提供了 Anaconda 仓库的镜像，运行以下命令:
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/</div><div class="line">conda config --set show_channel_urls yes</div></pre></td></tr></table></figure></p>
+<p>即可添加 Anaconda Python 免费仓库。</p>
+<p>运行 conda install numpy 测试一下吧。</p>
 ]]></content>
       
         <categories>
