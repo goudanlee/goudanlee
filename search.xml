@@ -3,6 +3,169 @@
   
     
     <entry>
+      <title><![CDATA[机器学习常见算法之朴素贝叶斯]]></title>
+      <url>/2017/06/13/NavieBayes/</url>
+      <content type="html"><![CDATA[<h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>最近学习了机器学习的常用算法，不得不说在sklearn的封装下，使用这些算法是非常简单的，但是，如果如果对算法的原理不够了解，那么在选择算法或者调参过程中就会非常迷茫，这里对学到的算法进行一些记录，确保自己能够理解其实现原理，同时作为自己的学习笔记方便后续回顾。</p>
+<h3 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h3><p>在了解各种分类算法之前，必须先搞清楚一个问题，什么是分类？</p>
+<p>分类问题，其实谁都不会陌生，说我们每个人每天都在执行分类操作一点都不夸张，只是我们没有意识到罢了。例如，当你看到一个陌生人，你的脑子下意识判断TA是男是女；你可能经常会走在路上对身旁的朋友说“这个人一看就很有钱、那边有个非主流”之类的话，其实这就是一种分类操作。</p>
+<p>例如，医生对病人进行诊断就是一个典型的分类过程，任何一个医生都无法直接看到病人的病情，只能观察病人表现出的症状和各种化验检测数据来推断病情，这时医生就好比一个分类器，而这个医生诊断的准确率，与他当初受到的教育方式（构造方法）、病人的症状是否突出（待分类数据的特性）以及医生的经验多少（训练样本数量）都有密切关系。</p>
+<p>了解了什么是分类之后，我们再来看下朴素贝叶斯分类器。</p>
+<h3 id="朴素贝叶斯分类器"><a href="#朴素贝叶斯分类器" class="headerlink" title="朴素贝叶斯分类器"></a>朴素贝叶斯分类器</h3><p>朴素贝叶斯分类是一种十分简单的分类算法，叫它朴素贝叶斯分类是因为这种方法的思想真的很朴素，朴素贝叶斯的思想基础是这样的：对于给出的待分类项，求解在此项出现的条件下各个类别出现的概率，哪个最大，就认为此待分类项属于哪个类别。这里我们举一个例子进行说明：</p>
+<p>假设有一所学校，学生中60%是男生和40%是女生。女生穿裤子与裙子的数量相同；所有男生穿裤子。现在有一个观察者，随机从远处看到一名学生，因为很远，观察者只能看到该学生穿的是裤子，但不能从长相发型等其他方面推断被观察者的性别。那么该学生是女生的概率是多少？</p>
+<p>用事件 G 表示观察到的学生是女生，用事件 T 表示观察到的学生穿裤子。于是，现在要计算的是条件概率 P(G|T) ，我们需要知道：</p>
+<ul>
+<li><p>P(G) 表示一个学生是女生的概率。由于观察者随机看到一名学生，意味着所有的学生都可能被看到，女生在全体学生中的占比是 40% ，所以概率是 P(G)=0.4 。注意，这是在没有任何其他信息下的概率。这也就是先验概率。后面我们还会详细讨论。</p>
+</li>
+<li><p>P(B) 是学生不是女生的概率，也就是学生是男生的概率，这同样也是指在没有其他任何信息的情况下，学生是男生的先验概率。 B 事件是 G 事件的互补的事件，于是易得 P(B)=0.6 。</p>
+</li>
+<li><p>P(T|G) 是在女生中穿裤子的概率，根据题目描述，女生穿裙子和穿裤子各占一半，所以 P(T|G)=0.5 。这也就是在给定 G 的条件下，T 事件的概率。</p>
+</li>
+<li><p>P(T|B) 是在男生中穿裤子的概率，这个值是1。</p>
+</li>
+<li><p>P(T) 是学生穿裤子的概率，即任意选一个学生，在没有其他信息的情况下，该名学生穿裤子的概率。根据全概率公式 $$ P(T)=\sum _{i=1}^nP(T|A_i)P(A_i)=P(T|G)P(G)+P(T|B)P(B) $$<br>计算得到 $$ P(T)=0.5×0.4+1×0.6=0.8 $$</p>
+</li>
+</ul>
+<p>根据<a href="https://zh.wikipedia.org/wiki/%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%AE%9A%E7%90%86" target="_blank" rel="external">贝叶斯定理</a></p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+  <mi>P</mi>
+  <mo stretchy="false">(</mo>
+  <msub>
+    <mi>A</mi>
+    <mi>i</mi>
+  </msub>
+  <mrow class="MJX-TeXAtom-ORD">
+    <mo stretchy="false">|</mo>
+  </mrow>
+  <mi>T</mi>
+  <mo stretchy="false">)</mo>
+  <mo>=</mo>
+  <mfrac>
+    <mrow>
+      <mi>P</mi>
+      <mo stretchy="false">(</mo>
+      <mi>T</mi>
+      <mrow class="MJX-TeXAtom-ORD">
+        <mo stretchy="false">|</mo>
+      </mrow>
+      <msub>
+        <mi>A</mi>
+        <mi>i</mi>
+      </msub>
+      <mo stretchy="false">)</mo>
+      <mi>P</mi>
+      <mo stretchy="false">(</mo>
+      <msub>
+        <mi>A</mi>
+        <mi>i</mi>
+      </msub>
+      <mo stretchy="false">)</mo>
+    </mrow>
+    <mrow>
+      <munderover>
+        <mo>&#x2211;<!-- ∑ --></mo>
+        <mrow class="MJX-TeXAtom-ORD">
+          <mi>i</mi>
+          <mo>=</mo>
+          <mn>1</mn>
+        </mrow>
+        <mi>n</mi>
+      </munderover>
+      <mi>P</mi>
+      <mo stretchy="false">(</mo>
+      <mi>T</mi>
+      <mrow class="MJX-TeXAtom-ORD">
+        <mo stretchy="false">|</mo>
+      </mrow>
+      <msub>
+        <mi>A</mi>
+        <mi>i</mi>
+      </msub>
+      <mo stretchy="false">)</mo>
+      <mi>P</mi>
+      <mo stretchy="false">(</mo>
+      <msub>
+        <mi>A</mi>
+        <mi>i</mi>
+      </msub>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </mfrac>
+  <mo>=</mo>
+  <mfrac>
+    <mrow>
+      <mi>P</mi>
+      <mo stretchy="false">(</mo>
+      <mi>T</mi>
+      <mrow class="MJX-TeXAtom-ORD">
+        <mo stretchy="false">|</mo>
+      </mrow>
+      <msub>
+        <mi>A</mi>
+        <mi>i</mi>
+      </msub>
+      <mo stretchy="false">)</mo>
+      <mi>P</mi>
+      <mo stretchy="false">(</mo>
+      <msub>
+        <mi>A</mi>
+        <mi>i</mi>
+      </msub>
+      <mo stretchy="false">)</mo>
+    </mrow>
+    <mrow>
+      <mi>P</mi>
+      <mo stretchy="false">(</mo>
+      <mi>T</mi>
+      <mo stretchy="false">)</mo>
+    </mrow>
+  </mfrac>
+</math>
+
+<p>基于以上所有信息，如果观察到一个穿裤子的学生，并且是女生的概率是</p>
+<p>$$P(G|T)=\frac{P(T|G)P(G)}{P(T)}=0.5×0.4\div0.8=0.25.$$</p>
+<h3 id="朴素贝叶斯分类器流程"><a href="#朴素贝叶斯分类器流程" class="headerlink" title="朴素贝叶斯分类器流程"></a>朴素贝叶斯分类器流程</h3><p>根据上述分析，朴素贝叶斯分类的流程可以由下图表示:
+<img src="/2017/06/13/NavieBayes/1.png" alt="Navie Bayes" title="Navie Bayes"></p>
+<p>可以看到，整个朴素贝叶斯分类分为三个阶段：</p>
+<p>第一阶段——准备工作阶段，这个阶段的任务是为朴素贝叶斯分类做必要的准备，主要工作是根据具体情况确定特征属性，并对每个特征属性进行适当划分，然后由人工对一部分待分类项进行分类，形成训练样本集合。这一阶段的输入是所有待分类数据，输出是特征属性和训练样本。这一阶段是整个朴素贝叶斯分类中唯一需要人工完成的阶段，其质量对整个过程将有重要影响，分类器的质量很大程度上由特征属性、特征属性划分及训练样本质量决定。</p>
+<p>第二阶段——分类器训练阶段，这个阶段的任务就是生成分类器，主要工作是计算每个类别在训练样本中的出现频率及每个特征属性划分对每个类别的条件概率估计，并将结果记录。其输入是特征属性和训练样本，输出是分类器。这一阶段是机械性阶段，根据前面讨论的公式可以由程序自动计算完成。</p>
+<p>第三阶段——应用阶段。这个阶段的任务是使用分类器对待分类项进行分类，其输入是分类器和待分类项，输出是待分类项与类别的映射关系。这一阶段也是机械性阶段，由程序完成。</p>
+<h3 id="先验概率（Prior-probability）"><a href="#先验概率（Prior-probability）" class="headerlink" title="先验概率（Prior probability）"></a>先验概率（Prior probability）</h3><p>在贝叶斯统计中，先验概率分布，即关于某个变量 X 的概率分布，是在获得某些信息或者依据前，对 X 之不确定性所进行的猜测。这是对不确定性（而不是随机性）赋予一个量化的数值的表征，这个量化数值可以是一个参数，或者是一个潜在的变量。</p>
+<p>先验概率仅仅依赖于主观上的经验估计，也就是事先根据已有的知识的推断。例如， X 可以是投一枚硬币，正面朝上的概率，显然在我们未获得任何其他信息的条件下，我们会认为 P(X)=0.5；再比如上面例子中的，P(G)=0.4。</p>
+<p>在应用贝叶斯理论时，通常将先验概率乘以似然函数（Likelihood Function）再归一化后，得到后验概率分布，后验概率分布即在已知给定的数据后，对不确定性的条件分布。</p>
+<h3 id="似然函数（Likelihood-function）"><a href="#似然函数（Likelihood-function）" class="headerlink" title="似然函数（Likelihood function）"></a>似然函数（Likelihood function）</h3><p>似然函数（也称作似然），是一个关于统计模型参数的函数。也就是这个函数中自变量是统计模型的参数。对于观测结果 x ，在参数集合 θ 上的似然，就是在给定这些参数值的基础上，观察到的结果的概率 (θ)=P(x|θ) 。也就是说，似然是关于参数的函数，在参数给定的条件下，对于观察到的 x 的值的条件分布。</p>
+<p>似然函数在统计推断中发挥重要的作用，因为它是关于统计参数的函数，所以可以用来对一组统计参数进行评估，也就是说在一组统计方案的参数中，可以用似然函数做筛选。</p>
+<p>你会发现，“似然”也是一种“概率”。但不同点就在于，观察值 x 与参数 θ 的不同的角色。概率是用于描述一个函数，这个函数是在给定参数值的情况下的关于观察值的函数。例如，已知一个硬币是均匀的（在抛落中，正反面的概率相等），那连续10次正面朝上的概率是多少？这是个概率。</p>
+<p>而似然是用于在给定一个观察值时，关于描述参数的函数。例如，如果一个硬币在10次抛落中正面均朝上，那硬币是均匀的（在抛落中，正反面的概率相等）概率是多少？这里用了概率这个词，但是实质上是“可能性”，也就是似然了。</p>
+<h3 id="后验概率（Posterior-probability）"><a href="#后验概率（Posterior-probability）" class="headerlink" title="后验概率（Posterior probability）"></a>后验概率（Posterior probability）</h3><p>后验概率是关于随机事件或者不确定性断言的条件概率，是在相关证据或者背景给定并纳入考虑之后的条件概率。后验概率分布就是未知量作为随机变量的概率分布，并且是在基于实验或者调查所获得的信息上的条件分布。“后验”在这里意思是，考虑相关事件已经被检视并且能够得到一些信息。</p>
+<p>后验概率是关于参数 θ 在给定的证据信息 X 下的概率，即 P(θ|X) 。若对比后验概率和似然函数，似然函数是在给定参数下的证据信息 X 的概率分布，即 P(X|θ) 。二者有如下关系：</p>
+<p>我们用 P(θ) 表示概率分布函数，用 P(X|θ) 表示观测值 X 的似然函数。后验概率定义为 P(θ|X)=P(X|θ)P(θ)P(X)，注意这也是贝叶斯定理所揭示的内容。</p>
+<p>鉴于分母是一个常数，上式可以表达成如下比例关系（而且这也是我们更多采用的形式）：Posterior probability∝Likelihood×Prior probability</p>
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><p><a href="https://zh.wikipedia.org/wiki/%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%AE%9A%E7%90%86" target="_blank" rel="external">https://zh.wikipedia.org/wiki/朴素贝叶斯定理</a></p>
+<p><a href="https://zh.wikipedia.org/wiki/%E6%9C%B4%E7%B4%A0%E8%B4%9D%E5%8F%B6%E6%96%AF%E5%88%86%E7%B1%BB%E5%99%A8" target="_blank" rel="external">https://zh.wikipedia.org/wiki/朴素贝叶斯分类器</a>  </p>
+<p><a href="http://www.cnblogs.com/leoo2sk/archive/2010/09/17/naive-bayesian-classifier.html" target="_blank" rel="external">算法杂货铺——分类算法之朴素贝叶斯分类(Naive Bayesian classification)</a></p>
+<p><a href="http://blog.csdn.net/baimafujinji/article/details/51374202" target="_blank" rel="external">先验概率、后验概率以及共轭先验</a></p>
+]]></content>
+      
+        <categories>
+            
+            <category> 机器学习 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> 机器学习 </tag>
+            
+            <tag> 算法 </tag>
+            
+            <tag> 朴素贝叶斯 </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[WineQualityReds EDA]]></title>
       <url>/2017/06/09/WineQualityReds/</url>
       <content type="html"><![CDATA[<p>作为一个数据分析师，在数据处理过程中，当获取到一份新数据，你对这份数据完全陌生，又没有足够的业务背景，会不会感觉无从下手。如果你什么都不管，直接把数据喂给各种模型，却发现效果不好，因为你没有好的特征，那么你可能需要的是数据探索。 </p>
