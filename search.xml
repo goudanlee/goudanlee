@@ -5,7 +5,7 @@
     <entry>
       <title><![CDATA[线性回归的R-square]]></title>
       <url>/2017/06/19/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E7%9A%84R-square/</url>
-      <content type="html"><![CDATA[<p>今天在练习线性回归的R-score时，发现有一个模型的predict之后的score居然为-1.487，这里非常疑惑，因为线性回归的R-squar的定义是</p>
+      <content type="html"><![CDATA[<p>今天在练习线性回归的R-score时，发现有一个模型的predict之后的score居然为-1.487，这里非常疑惑，因为sklearn文档里reg.score()返回值的定义是：</p>
 <p><strong>Returns the coefficient of determination R^2 of the prediction.</strong></p>
 <p>那既然是返回预测系数是R^2，那怎么可能出现负数呢。
 <a id="more"></a></p>
