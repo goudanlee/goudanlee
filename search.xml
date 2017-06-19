@@ -3,6 +3,42 @@
   
     
     <entry>
+      <title><![CDATA[线性回归的R-square]]></title>
+      <url>/2017/06/19/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E7%9A%84R-square/</url>
+      <content type="html"><![CDATA[<p>今天在练习线性回归的R-score时，发现有一个模型的predict之后的score居然为-1.487，这里非常疑惑，因为线性回归的R-squar的定义是</p>
+<p><strong>Returns the coefficient of determination R^2 of the prediction.</strong></p>
+<p>那既然是返回预测系数是R^2，那怎么可能出现负数呢。
+<a id="more"></a></p>
+<p>这里我们还是看下 <a href="http://scikit-learn.org" target="_blank" rel="external">http://scikit-learn.org</a> 官方文档：</p>
+<p><a href="http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html" target="_blank" rel="external">sklearn.linear_model.LinearRegression</a></p>
+<p>score(X, y, sample_weight=None)</p>
+<p>Returns the coefficient of determination R^2 of the prediction.</p>
+<p>The coefficient R^2 is defined as (1 - u/v), where u is the regression sum of squares ((y_true - y_pred) ^ 2).sum() and v is the residual sum of squares ((y_true - y_true.mean()) ^ 2).sum(). Best possible score is 1.0 and it can be negative (because the model can be arbitrarily worse). A constant model that always predicts the expected value of y, disregarding the input features, would get a R^2 score of 0.0.</p>
+<p>所以实际上 
+$$ score = 1 - u/v $$
+$$ u=((y_true - y_pred) ^2).sum() $$
+$$ v=((y_true - y_true.mean()) ^ 2).sum() $$</p>
+<p>当预测完全正确的时候u的值是0，所以score的最好得分是1；但是当预测表现不好的时候u/v这个数字可能会变的很大，所以1-u/v是有可能为负数的，而在正常情况下 0 &lt; R-score &lt; 1.0。</p>
+]]></content>
+      
+        <categories>
+            
+            <category> 机器学习 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> 机器学习 </tag>
+            
+            <tag> 线性回归 </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[机器学习常见算法之支持向量机SVM]]></title>
       <url>/2017/06/19/SupportVectorMachine/</url>
       <content type="html"><![CDATA[<p>支持向量机，因其英文名为support vector machine，故一般简称SVM，通俗来讲，它是一种二类分类模型，其基本模型定义为特征空间上的间隔最大的线性分类器，其学习策略便是间隔最大化，最终可转化为一个凸二次规划问题的求解。
