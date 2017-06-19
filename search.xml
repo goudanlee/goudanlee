@@ -3,7 +3,101 @@
   
     
     <entry>
-      <title><![CDATA[机器学习常见算法之朴素贝叶斯]]></title>
+      <title><![CDATA[机器学习常见算法之支持向量机SVM]]></title>
+      <url>/2017/06/19/SupportVectorMachine/</url>
+      <content type="html"><![CDATA[<p>支持向量机，因其英文名为support vector machine，故一般简称SVM，通俗来讲，它是一种二类分类模型，其基本模型定义为特征空间上的间隔最大的线性分类器，其学习策略便是间隔最大化，最终可转化为一个凸二次规划问题的求解。
+<a id="more"></a></p>
+<h3 id="什么是支持向量机模型"><a href="#什么是支持向量机模型" class="headerlink" title="什么是支持向量机模型"></a>什么是支持向量机模型</h3><p>支持向量机（SVM）是一种有监督学习的算法，它可以用来处理分类和回归的问题。然而，实际应用中，SVM 主要用来处理分类问题。在这个算法中，首先我们将所有点画在一个 n 维空间中（其中 n 代表特征个数）。然后我们通过寻找较好区分两类样本的超平面来对数据进行分类处理（如下图所示）。
+<img src="/2017/06/19/SupportVectorMachine/1.png" alt="&nbsp" title="&nbsp"></p>
+<p>支持向量是观测值的坐标，支持向量机是隔离两个类别的最佳边界（超平面）。</p>
+<p><a href="http://www.analyticsvidhya.com/blog/2014/10/support-vector-machine-simplified/" target="_blank" rel="external">这里</a>可以看到关于支持向量的定义和一些实例。</p>
+<h3 id="支持向量机的运行原理"><a href="#支持向量机的运行原理" class="headerlink" title="支持向量机的运行原理"></a>支持向量机的运行原理</h3><p>首先，我们已经熟悉了如何利用超平面来区分两个类别的数据。如今急需解决的问题是：“如何找出最佳的超平面？”不要担心，它没有你所想的那么困难！</p>
+<p>让我们来看几个例子：</p>
+<p><strong>场景一：</strong>首先，我们有三个超平面（A、B 和 C）。现在我们需要的是找出区分星星和圆圈的最佳超平面。</p>
+<img src="/2017/06/19/SupportVectorMachine/2.png" alt="&nbsp" title="&nbsp">
+<p>你需要记住一个识别最佳超平面的经验法则：“选择能更好区分两个类别的超平面。”在这个例子中，超平面“B”是最佳分割平面。</p>
+<p><strong>场景二：</strong>首先我们有三个超平面（A、B 和 C），它们都很好地区分两个类别的数据。那么我们要如何选出最佳的超平面呢？
+<img src="/2017/06/19/SupportVectorMachine/3.png" alt="&nbsp" title="&nbsp"></p>
+<p>在这里，我们可以通过最大化超平面和其最近的各个类别中数据点的距离来寻找最佳超平面。这个距离我们称之为边际距离。
+<img src="/2017/06/19/SupportVectorMachine/4.png" alt="&nbsp" title="&nbsp"></p>
+<p>从上图中你可以看到超平面 C 的边际距离最大。因此，我们称 C 为最佳超平面。选择具有最大边际距离的超平面的做法是稳健的。如果我们选择其他超平面，将存在较高的错分率。</p>
+<p><strong>场景三：</strong>利用之前章节提到的规则来识别最佳超平面
+<img src="/2017/06/19/SupportVectorMachine/5.png" alt="&nbsp" title="&nbsp"></p>
+<p>或许你们会选择具有较大边际距离的超平面 B。但是你们错了，SVM 选择超平面时更看重分类的准确度。在上图中，超平面 B 存在一个错分点而超平面 A 的分类则全部正确。因此，最佳超平面是 A。</p>
+<p><strong>场景四：</strong>由于存在异常值，我们无法通过一条直线将这两类数据完全区分开来。
+<img src="/2017/06/19/SupportVectorMachine/6.png" alt="&nbsp" title="&nbsp"></p>
+<p>正如之前提到的，另一端的星星可以被视为异常值。SVM 可以忽略异常值并寻找具有最大边际距离的超平面。因此，我们可以说 SVM 模型在处理异常值时具有鲁棒性。</p>
+<p><strong>场景五：</strong>在这个场景中，我们无法通过线性超平面区分这两类数据，那么 SVM 是如何对这种数据进行分类的呢？
+<img src="/2017/06/19/SupportVectorMachine/7.png" alt="&nbsp" title="&nbsp"></p>
+<p>SVM 模型可以非常容易地解决这个问题。通过引入新的变量信息，我们可以很容易地搞定这个问题。比如我们引入新的变量
+$$z=x^2 + y^2$$</p>
+<p>然后我们对 x 和 z 构建散点图：
+<img src="/2017/06/19/SupportVectorMachine/8.png" alt="&nbsp" title="&nbsp"></p>
+<p>从上图中我们可以看出：</p>
+<p>由于</p>
+<p>$$ z=x^2 + y^2 $$</p>
+<p>所以变量 z 恒大于零。</p>
+<p>原始图中，红圈数据分布在原点附近，它们的 z 值比较小；而星星数据则远离原点区域，它们具有较大的 z 值。</p>
+<p>在 SVM 模型中，我们可以很容易地找到分割两类数据的线性超平面。但是另外一个急需解决的问题是：我们应该手动增加变量信息从而获得该线性超平面分割吗？答案是否定的！SVM 模型有一个工具叫做 kernel trick。该函数可以将输入的低维空间信息转化为高维空间信息。在解决非线性分割问题时，我们经常用到这个函数。简单地说，该函数可以转换一些极其复杂的数据，然后根据自己所定义的标签或输出结果寻找区分数据的超平面。</p>
+<p>我们可以在原始图中画出最佳超平面：
+<img src="/2017/06/19/SupportVectorMachine/9.png" alt="&nbsp" title="&nbsp"></p>
+<h3 id="如何利用-Python-实现-SVM-模型？"><a href="#如何利用-Python-实现-SVM-模型？" class="headerlink" title="如何利用 Python 实现 SVM 模型？"></a>如何利用 Python 实现 SVM 模型？</h3><p>在 Python 中，scikit-learn 是一个被广泛使用的机器学习算法库。我们可以通过 scikit-learn 库来构建 SVM 模型。
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> svm</div><div class="line">X = [[<span class="number">0</span>, <span class="number">0</span>], [<span class="number">1</span>, <span class="number">1</span>]]</div><div class="line">y = [<span class="number">0</span>, <span class="number">1</span>]</div><div class="line">clf = svm.SVC()</div><div class="line">clf.fit(X, y)  </div><div class="line"></div><div class="line">SVC(C=<span class="number">1.0</span>, cache_size=<span class="number">200</span>, class_weight=<span class="keyword">None</span>, coef0=<span class="number">0.0</span>,</div><div class="line">    decision_function_shape=<span class="keyword">None</span>, degree=<span class="number">3</span>, gamma=<span class="string">'auto'</span>, kernel=<span class="string">'rbf'</span>,</div><div class="line">    max_iter=<span class="number">-1</span>, probability=<span class="keyword">False</span>, random_state=<span class="keyword">None</span>, shrinking=<span class="keyword">True</span>,</div><div class="line">    tol=<span class="number">0.001</span>, verbose=<span class="keyword">False</span>)</div><div class="line"></div><div class="line">After being fitted, the model can then be used to predict new values:</div><div class="line"></div><div class="line">clf.predict([[<span class="number">2.</span>, <span class="number">2.</span>]])</div><div class="line">array([<span class="number">1</span>])</div></pre></td></tr></table></figure></p>
+<h3 id="如何调整-SVM-模型的参数？"><a href="#如何调整-SVM-模型的参数？" class="headerlink" title="如何调整 SVM 模型的参数？"></a>如何调整 SVM 模型的参数？</h3><p>有效地调节机器学习算法的参数可以提高模型的表现力。让我们来看看 SVM 模型的可用参数列表：
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">class sklearn.svm.SVC<span class="params">(<span class="attr">C</span>=1.0, <span class="attr">kernel</span>='rbf', <span class="attr">degree</span>=3, <span class="attr">gamma</span>='auto', <span class="attr">coef0</span>=0.0, <span class="attr">shrinking</span>=True, <span class="attr">probability</span>=False, <span class="attr">tol</span>=0.001, <span class="attr">cache_size</span>=200, <span class="attr">class_weight</span>=None, <span class="attr">verbose</span>=False, <span class="attr">max_iter</span>=-1, <span class="attr">decision_function_shape</span>=None, <span class="attr">random_state</span>=None)</span>[source]</div></pre></td></tr></table></figure></p>
+<p>接下来我将要讨论 SVM 模型中一些比较重要的参数：“kernel”，“gamma”和“C”。</p>
+<p>kernel：我们之前已经讨论过这个问题。Kernel参数中具有多个可选项：“linear”，“rbf”和“poly”等（默认值是“rbf”）。其中 “rbf”和“poly”通常用于拟合非线性超平面。下面是一个例子：我们利用线性核估计­对鸢尾花数据进行分类。</p>
+<h4 id="例子：线性核估计"><a href="#例子：线性核估计" class="headerlink" title="例子：线性核估计"></a>例子：线性核估计</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</div><div class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</div><div class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> svm, datasets</div><div class="line"></div><div class="line"><span class="comment"># import some data to play with</span></div><div class="line">iris = datasets.load_iris()</div><div class="line">X = iris.data[:, :<span class="number">2</span>] <span class="comment"># we only take the first two features. We could</span></div><div class="line"> <span class="comment"># avoid this ugly slicing by using a two-dim dataset</span></div><div class="line">y = iris.target</div><div class="line"></div><div class="line"><span class="comment"># we create an instance of SVM and fit out data. We do not scale our</span></div><div class="line"><span class="comment"># data since we want to plot the support vectors</span></div><div class="line">C = <span class="number">1.0</span> <span class="comment"># SVM regularization parameter</span></div><div class="line">svc = svm.SVC(kernel=<span class="string">'linear'</span>, C=<span class="number">1</span>,gamma=<span class="number">0</span>).fit(X, y)</div><div class="line"></div><div class="line"><span class="comment"># create a mesh to plot in</span></div><div class="line">x_min, x_max = X[:, <span class="number">0</span>].min() - <span class="number">1</span>, X[:, <span class="number">0</span>].max() + <span class="number">1</span></div><div class="line">y_min, y_max = X[:, <span class="number">1</span>].min() - <span class="number">1</span>, X[:, <span class="number">1</span>].max() + <span class="number">1</span></div><div class="line">h = (x_max / x_min)/<span class="number">100</span></div><div class="line">xx, yy = np.meshgrid(np.arange(x_min, x_max, h),</div><div class="line"> np.arange(y_min, y_max, h))</div><div class="line"> </div><div class="line">plt.subplot(<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>)</div><div class="line">Z = svc.predict(np.c_[xx.ravel(), yy.ravel()])</div><div class="line">Z = Z.reshape(xx.shape)</div><div class="line">plt.contourf(xx, yy, Z, cmap=plt.cm.Paired, alpha=<span class="number">0.8</span>)</div><div class="line"></div><div class="line">plt.scatter(X[:, <span class="number">0</span>], X[:, <span class="number">1</span>], c=y, cmap=plt.cm.Paired)</div><div class="line">plt.xlabel(<span class="string">'Sepal length'</span>)</div><div class="line">plt.ylabel(<span class="string">'Sepal width'</span>)</div><div class="line">plt.xlim(xx.min(), xx.max())</div><div class="line">plt.title(<span class="string">'SVC with linear kernel'</span>)</div><div class="line">plt.show()</div></pre></td></tr></table></figure>
+<img src="/2017/06/19/SupportVectorMachine/10.png" alt="&nbsp" title="&nbsp">
+<h4 id="例子：rbf-核估计"><a href="#例子：rbf-核估计" class="headerlink" title="例子：rbf 核估计"></a>例子：rbf 核估计</h4><p>我们可以通过下面的代码调用 rbf 核估计，并观察其拟合结果。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">svc = svm.SVC(kernel=<span class="string">'rbf'</span>, C=<span class="number">1</span>,gamma=<span class="number">0</span>).fit(X, y)</div></pre></td></tr></table></figure>
+<img src="/2017/06/19/SupportVectorMachine/11.png" alt="&nbsp" title="&nbsp">
+<p>当变量个数比较大时（大于1000），我建议你最好使用线性核估计，因为在高维空间中数据大多是线性可分的。当然你也可以利用 rbf 核估计，不过你必须使用交叉验证调整参数从而避免过度拟合。</p>
+<p>“gamma”：“rbf”，“poly”和“sigmoid”的核估计系数。gamma的取值越大，越容易出现过度拟合的问题。</p>
+<h4 id="例子：比较不同gamma取值下模型的拟合结果"><a href="#例子：比较不同gamma取值下模型的拟合结果" class="headerlink" title="例子：比较不同gamma取值下模型的拟合结果"></a>例子：比较不同gamma取值下模型的拟合结果</h4><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">svc = svm.SVC<span class="params">(<span class="attr">kernel</span>='rbf', <span class="attr">C</span>=1,<span class="attr">gamma</span>=0)</span><span class="string">.fit</span><span class="params">(X, y)</span></div></pre></td></tr></table></figure>
+<img src="/2017/06/19/SupportVectorMachine/12.png" alt="&nbsp" title="&nbsp">
+<p>C：误差项的惩罚参数。我们可以通过调节该参数达到平衡分割边界的平滑程度和分类准确率的目的。
+<img src="/2017/06/19/SupportVectorMachine/13.png" alt="&nbsp" title="&nbsp"></p>
+<p>我们应该经常关注交叉验证结果从而有效地利用这些参数的组合避免过度拟合情况的问题。</p>
+<h3 id="SVM-模型的优缺点"><a href="#SVM-模型的优缺点" class="headerlink" title="SVM 模型的优缺点"></a>SVM 模型的优缺点</h3><p><strong>优点：</strong></p>
+<ol>
+<li>它的分类效果非常好。</li>
+<li>它可以有效地处理高维空间数据。</li>
+<li>它可以有效地处理变量个数大于样本个数的数据。</li>
+<li>它只利用一部分子集来训练模型，所以 SVM 模型不需要太大的内存。</li>
+</ol>
+<p><strong>缺点：</strong></p>
+<ol>
+<li>它无法很好地处理大规模数据集，因为此时它需要较长的训练时间。</li>
+<li>同时它也无法处理包含太多噪声的数据集。</li>
+<li>SVM 模型并没有直接提供概率估计值，而是利用比较耗时的五倍交叉验证估计量。</li>
+</ol>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p><a href="https://www.zhihu.com/question/21094489" target="_blank" rel="external">支持向量机(SVM)是什么意思？——知乎</a></p>
+<p><a href="https://www.analyticsvidhya.com/blog/2015/10/understaing-support-vector-machine-example-code/" target="_blank" rel="external">支持向量机实例讲解</a></p>
+<p><a href="https://zh.wikipedia.org/wiki/%E6%94%AF%E6%8C%81%E5%90%91%E9%87%8F%E6%9C%BA" target="_blank" rel="external">wikipedia/wiki/SupportVectorMachine ——维基百科</a></p>
+]]></content>
+      
+        <categories>
+            
+            <category> 机器学习 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> DAND </tag>
+            
+            <tag> 机器学习 </tag>
+            
+            <tag> SVM </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[机器学习常见算法之朴素贝叶斯(Navie Bayes)]]></title>
       <url>/2017/06/13/NavieBayes/</url>
       <content type="html"><![CDATA[<h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>最近学习了机器学习的常用算法，不得不说在sklearn的封装下，使用这些算法是非常方便的，但是，如果如果对算法的原理不够了解，那么在选择算法或者调参过程中就会非常迷茫，这里对学到的算法进行一些记录，确保自己能够理解其实现原理，同时作为自己的学习笔记方便后续回顾。</p>
 <h3 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h3><p>在了解各种分类算法之前，必须先搞清楚一个问题，什么是分类？</p>
