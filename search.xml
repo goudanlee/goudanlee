@@ -18,6 +18,8 @@
 <h3 id="特征缩放会影响哪些算法"><a href="#特征缩放会影响哪些算法" class="headerlink" title="特征缩放会影响哪些算法"></a>特征缩放会影响哪些算法</h3><p>根据特征缩放的原理可知，两个维度影响结果的算法将受到特征缩放的影响，如使用 RBF 核函数的 SVM 和 K-均值聚类，这两者在进行分类时都是计算距离，SVM计算点到线的距离，K-means计算点到点的距离，所以当其中一个特征比其他特征拥有更大的范围值时，则算法结果会被该特征影响。</p>
 <p>决策树算法在进行分类时，它只是在不同方向上做切割，当处理一个维度时，如果进行缩放，它还是会按照比例进行切割， 无需考虑另一个维度的影响，所以特征缩放并不会影响决策树算法的结果。</p>
 <p>线性回归中，每个特征都有一个相应的系数，这个系数总是和特征同时出现，特征A的变化不会影响特征B的系数，所以他们的分割方式相同。</p>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><p><a href="https://zh.wikipedia.org/wiki/%E7%89%B9%E5%BE%B5%E7%B8%AE%E6%94%BE" target="_blank" rel="external">https://zh.wikipedia.org/wiki/特征缩放</a></p>
+<p><a href="http://blog.csdn.net/xlinsist/article/details/51212348" target="_blank" rel="external">浅谈机器学习中的特征缩放（feature scaling)</a></p>
 ]]></content>
       
         <categories>
