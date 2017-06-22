@@ -3,6 +3,43 @@
   
     
     <entry>
+      <title><![CDATA[机器学习中的特征缩放（feature scaling）]]></title>
+      <url>/2017/06/22/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E4%B8%AD%E7%9A%84%E7%89%B9%E5%BE%81%E7%BC%A9%E6%94%BE%EF%BC%88feature-scaling%EF%BC%89/</url>
+      <content type="html"><![CDATA[<p>在运用一些机器学习算法的时候不可避免地要对数据进行特征缩放（feature scaling），比如：在随机梯度下降（stochastic gradient descent）算法中，特征缩放有时能提高算法的收敛速度。
+<a id="more"></a></p>
+<h3 id="什么是特征缩放"><a href="#什么是特征缩放" class="headerlink" title="什么是特征缩放"></a>什么是特征缩放</h3><p>特征缩放是用来标准化数据特征的范围。</p>
+<h3 id="机器算法为什么要特征缩放"><a href="#机器算法为什么要特征缩放" class="headerlink" title="机器算法为什么要特征缩放"></a>机器算法为什么要特征缩放</h3><p>特征缩放还可以使机器学习算法工作的更好。比如在K近邻算法中，分类器主要是计算两点之间的欧几里得距离，如果一个特征比其它的特征有更大的范围值，那么距离将会被这个特征值所主导。因此每个特征应该被归一化，比如将取值范围处理为0到1之间。</p>
+<p>就如文章开头所说，特征缩放也可以加快梯度收敛的速度。</p>
+<h3 id="特征缩放的一些方法"><a href="#特征缩放的一些方法" class="headerlink" title="特征缩放的一些方法"></a>特征缩放的一些方法</h3><h4 id="调节比例（Rescaling）"><a href="#调节比例（Rescaling）" class="headerlink" title="调节比例（Rescaling）"></a>调节比例（Rescaling）</h4><p>这种方法是将数据的特征缩放到[0,1]或[-1,1]之间。缩放到什么范围取决于数据的性质。对于这种方法的公式如下：</p>
+<p>$$ x′=x−min(x)max(x)−min(x) $$</p>
+<p>x是最初的特征值， x′是缩放后的值。</p>
+<h4 id="标准化-Standardization"><a href="#标准化-Standardization" class="headerlink" title="标准化(Standardization)"></a>标准化(Standardization)</h4><p>特征标准化使每个特征的值有零均值(zero-mean)和单位方差(unit-variance)。这个方法在机器学习地算法中被广泛地使用。例如：SVM，逻辑回归和神经网络。这个方法的公式如下：</p>
+<p>$$ x′=x−x¯σ $$</p>
+<h3 id="特征缩放会影响哪些算法"><a href="#特征缩放会影响哪些算法" class="headerlink" title="特征缩放会影响哪些算法"></a>特征缩放会影响哪些算法</h3><p>根据特征缩放的原理可知，两个维度影响结果的算法将受到特征缩放的影响，如使用 RBF 核函数的 SVM 和 K-均值聚类，这两者在进行分类时都是计算距离，SVM计算点到线的距离，K-means计算点到点的距离，所以当其中一个特征比其他特征拥有更大的范围值时，则算法结果会被该特征影响。</p>
+<p>决策树算法在进行分类时，它只是在不同方向上做切割，当处理一个维度时，如果进行缩放，它还是会按照比例进行切割， 无需考虑另一个维度的影响，所以特征缩放并不会影响决策树算法的结果。</p>
+<p>线性回归中，每个特征都有一个相应的系数，这个系数总是和特征同时出现，特征A的变化不会影响特征B的系数，所以他们的分割方式相同。</p>
+]]></content>
+      
+        <categories>
+            
+            <category> 机器学习 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> 机器学习 </tag>
+            
+            <tag> 算法 </tag>
+            
+            <tag> 特征缩放 </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[线性回归的R-square]]></title>
       <url>/2017/06/19/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E7%9A%84R-square/</url>
       <content type="html"><![CDATA[<p>今天在练习线性回归的R-score时，发现有一个模型的predict之后的score居然为-1.487，这里非常疑惑，因为sklearn文档里reg.score()返回值的定义是：</p>
