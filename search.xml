@@ -549,11 +549,11 @@ Name: 房号, dtype: int64
         
         <tags>
             
-            <tag> Python </tag>
+            <tag> 数据分析 </tag>
             
             <tag> DAND </tag>
             
-            <tag> 数据分析 </tag>
+            <tag> Python </tag>
             
         </tags>
         
@@ -920,9 +920,9 @@ $$z=x^2 + y^2$$</p>
         
         <tags>
             
-            <tag> R </tag>
-            
             <tag> 数据分析 </tag>
+            
+            <tag> R </tag>
             
         </tags>
         
@@ -966,11 +966,11 @@ $$z=x^2 + y^2$$</p>
         
         <tags>
             
+            <tag> 数据分析 </tag>
+            
             <tag> R </tag>
             
             <tag> DAND </tag>
-            
-            <tag> 数据分析 </tag>
             
         </tags>
         
@@ -1150,11 +1150,11 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> Python </tag>
+            <tag> 数据分析 </tag>
             
             <tag> DAND </tag>
             
-            <tag> 数据分析 </tag>
+            <tag> Python </tag>
             
             <tag> MongoDB </tag>
             
@@ -1245,9 +1245,9 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> DAND </tag>
-            
             <tag> 数据分析 </tag>
+            
+            <tag> DAND </tag>
             
             <tag> Data scientist </tag>
             
@@ -2450,11 +2450,11 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> Python </tag>
+            <tag> 数据分析 </tag>
             
             <tag> DAND </tag>
             
-            <tag> 数据分析 </tag>
+            <tag> Python </tag>
             
             <tag> Pandas </tag>
             
