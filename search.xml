@@ -3,6 +3,562 @@
   
     
     <entry>
+      <title><![CDATA[四季花园数据探索分析]]></title>
+      <url>/2017/06/30/four-seasons-houses/</url>
+      <content type="html"><![CDATA[<h3 id="四季花园数据探索分析"><a href="#四季花园数据探索分析" class="headerlink" title="四季花园数据探索分析"></a>四季花园数据探索分析</h3><p>数据来源 : 
+    <a href="http://housing.gzcc.gov.cn/search/project/project_detail.jsp?changeproInfoTag=0&amp;changePreSellTag=1&amp;preSell=20150313&amp;pjID=100000016402&amp;name=ysz" target="_blank" rel="external">阳光家缘</a> </p>
+<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>最近小区楼盘交楼了，等待了近两年的新房终于快要入住了，业主群也越来越活跃了，大家都非常期待尽快入住。</p>
+<p>在群里的聊天中发现，发现每户的建筑面积都与合同上有些差异，且阳光家缘上已经登记并公布出来了，于是爬下了本小区（四季花园）的阳光家缘数据进行探索性分析，使用学到的数据分析知识来了解一下本小区的情况。</p>
+<h3 id="数据导入"><a href="#数据导入" class="headerlink" title="数据导入"></a>数据导入</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">%matplotlib inline</div><div class="line"><span class="keyword">import</span> matplotlib</div><div class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</div><div class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</div><div class="line"><span class="keyword">import</span> warnings</div><div class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</div><div class="line">warnings.filterwarnings(<span class="string">'ignore'</span>)</div><div class="line">matplotlib.matplotlib_fname() </div><div class="line"></div><div class="line"><span class="comment">## 导入数据</span></div><div class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</div><div class="line"></div><div class="line">df = pd.read_csv(<span class="string">'/Users/lihan/Documents/four_seasons.csv'</span>)</div><div class="line"></div><div class="line">df.info()</div></pre></td></tr></table></figure>
+<pre><code>&lt;class &apos;pandas.core.frame.DataFrame&apos;&gt;
+RangeIndex: 368 entries, 0 to 367
+Data columns (total 8 columns):
+楼栋          368 non-null int64
+房号          368 non-null int64
+类型          368 non-null object
+总面积（平方米）    368 non-null float64
+户型          368 non-null object
+状态          368 non-null object
+抵押          368 non-null object
+查封          368 non-null object
+dtypes: float64(1), int64(2), object(5)
+memory usage: 23.1+ KB
+</code></pre><p>数据集中共包含368个元素，其中包含8个变量，其中楼栋、房号、总面积属于数值型变量，其他字段属于文本离散型变量。</p>
+<p>小区比较小，一共只有三栋楼，所以数据量不是很大，接下来，我们对数据进行一些有趣的探索。</p>
+<h3 id="数据清洗"><a href="#数据清洗" class="headerlink" title="数据清洗"></a>数据清洗</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 查看数据情况</span></div><div class="line">df.head()</div></pre></td></tr></table></figure>
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>楼栋</th>
+      <th>房号</th>
+      <th>类型</th>
+      <th>总面积（平方米）</th>
+      <th>户型</th>
+      <th>状态</th>
+      <th>抵押</th>
+      <th>查封</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>2501</td>
+      <td>其他</td>
+      <td>14.6774</td>
+      <td>其他</td>
+      <td>确权不可售</td>
+      <td>否</td>
+      <td>否</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>2401</td>
+      <td>住宅</td>
+      <td>119.4208</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1</td>
+      <td>2402</td>
+      <td>住宅</td>
+      <td>122.2239</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>1</td>
+      <td>2403</td>
+      <td>住宅</td>
+      <td>119.6679</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1</td>
+      <td>2404</td>
+      <td>住宅</td>
+      <td>93.9536</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+<p>查看一下数据详情，这里我们发现，数据里的户型只存在两种情况“3房2厅”和“其他”。</p>
+<p>通过面积数据可以，看出“其他”户型应该是不属于真正的可使用单位，毕竟并不存在总面积只有14个平方的房子。再观察房号可以看出，这些单位应该是属于各栋建筑的公摊部分，属于非住宅，所以我们首先需要将这些数据筛选掉。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## 筛选有效户数</span></div><div class="line">df_actual = df[df[<span class="string">"户型"</span>] != <span class="string">"其他"</span>]</div></pre></td></tr></table></figure>
+<p>而其他户型均为“3房2厅”，是因为小区里确实所有的户型均为3房2厅，只是不同户型面积有区别，这个户型确实也是刚需人群比较倾向的一个户型（侧面说明了确实是一个很小的小区，并没有多种户型可以选择）。所以，这里我们需要通过房号重构出“楼层”、“实际户型”两个变量，方便后续进行分析。</p>
+<p>根据楼盘资料，小区的实际户型只有3种，92方、117方、120方，其中南向单位为1栋，3栋01、02</p>
+<p>各单元与户型的对应关系如下：</p>
+<table>
+   <tr>
+      <td>楼栋\单元号</td>
+      <td>01</td>
+      <td>02</td>
+      <td>03</td>
+      <td>04</td>
+      <td>05</td>
+   </tr>
+   <tr>
+      <td>1</td>
+      <td>117</td>
+      <td>120</td>
+      <td>117</td>
+      <td>92</td>
+      <td>92</td>
+   </tr>
+   <tr>
+      <td>2</td>
+      <td>117</td>
+      <td>120</td>
+      <td>117</td>
+      <td>92</td>
+      <td>92</td>
+   </tr>
+   <tr>
+      <td>3</td>
+      <td>92</td>
+      <td>92</td>
+      <td>117</td>
+      <td>120</td>
+      <td>117</td>
+   </tr>
+</table>
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 定义一个函数，通过楼栋和单元号，返回实际户型</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_area</span><span class="params">(data)</span>:</span></div><div class="line">    <span class="comment">#定义楼栋及单元号</span></div><div class="line">    building = str(data[<span class="number">0</span>])</div><div class="line">    unit = str(data[<span class="number">1</span>])[len(str(data[<span class="number">1</span>]))<span class="number">-2</span>:]</div><div class="line">    area = <span class="string">''</span></div><div class="line">    </div><div class="line">    <span class="comment">#通过楼栋及单元号获取实际户型</span></div><div class="line">    <span class="keyword">if</span> building == <span class="string">'3'</span>:</div><div class="line">        <span class="keyword">if</span> unit <span class="keyword">in</span> (<span class="string">'01'</span>,<span class="string">'02'</span>):</div><div class="line">            area = <span class="string">'92'</span></div><div class="line">        <span class="keyword">elif</span> unit <span class="keyword">in</span> (<span class="string">'03'</span>,<span class="string">'05'</span>):</div><div class="line">            area = <span class="string">'117'</span></div><div class="line">        <span class="keyword">else</span>:</div><div class="line">            area = <span class="string">'120'</span></div><div class="line">    <span class="keyword">else</span>:</div><div class="line">        <span class="keyword">if</span> unit <span class="keyword">in</span> (<span class="string">'04'</span>,<span class="string">'05'</span>):</div><div class="line">            area = <span class="string">'92'</span></div><div class="line">        <span class="keyword">elif</span> unit <span class="keyword">in</span> (<span class="string">'01'</span>,<span class="string">'03'</span>):</div><div class="line">            area = <span class="string">'117'</span></div><div class="line">        <span class="keyword">else</span>:</div><div class="line">            area = <span class="string">'120'</span></div><div class="line">    <span class="keyword">return</span> area </div><div class="line"></div><div class="line"><span class="comment"># 定义函数通过楼层生成楼层分类</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_floor_type</span><span class="params">(data)</span>:</span></div><div class="line">    floor = float(data[<span class="string">'楼层'</span>])</div><div class="line">    </div><div class="line">    <span class="keyword">if</span> floor &lt; <span class="number">9</span>:</div><div class="line">        <span class="keyword">return</span> <span class="number">1</span></div><div class="line">    <span class="keyword">if</span> floor &gt; <span class="number">16</span>:</div><div class="line">        <span class="keyword">return</span> <span class="number">3</span></div><div class="line">    <span class="keyword">else</span>:</div><div class="line">        <span class="keyword">return</span> <span class="number">2</span></div></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 生成所有实际住宅的楼层及户型数据</span></div><div class="line"></div><div class="line">df_actual[<span class="string">"楼层"</span>] = df_actual.apply(<span class="keyword">lambda</span> x: str(x[<span class="number">1</span>])[:len(str(x[<span class="number">1</span>]))<span class="number">-2</span>], axis=<span class="number">1</span>)</div><div class="line">df_actual[<span class="string">"实际户型"</span>] = df_actual.apply(get_area, axis=<span class="number">1</span>)</div><div class="line">df_actual.head(<span class="number">5</span>)</div></pre></td></tr></table></figure>
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>楼栋</th>
+      <th>房号</th>
+      <th>类型</th>
+      <th>总面积（平方米）</th>
+      <th>户型</th>
+      <th>状态</th>
+      <th>抵押</th>
+      <th>查封</th>
+      <th>楼层</th>
+      <th>实际户型</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>2401</td>
+      <td>住宅</td>
+      <td>119.4208</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+      <td>24</td>
+      <td>117</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1</td>
+      <td>2402</td>
+      <td>住宅</td>
+      <td>122.2239</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+      <td>24</td>
+      <td>120</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>1</td>
+      <td>2403</td>
+      <td>住宅</td>
+      <td>119.6679</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+      <td>24</td>
+      <td>117</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1</td>
+      <td>2404</td>
+      <td>住宅</td>
+      <td>93.9536</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+      <td>24</td>
+      <td>92</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>1</td>
+      <td>2405</td>
+      <td>住宅</td>
+      <td>94.0210</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+      <td>24</td>
+      <td>92</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+<h3 id="数据探索"><a href="#数据探索" class="headerlink" title="数据探索"></a>数据探索</h3><p>先定义一个分组函数方便后续进行分组统计，定义常用的几个绘图函数，方便后续进行调用。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 定义一个分组函数，计算每组的人数 </span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">group_count</span><span class="params">(data,column)</span>:</span></div><div class="line">    <span class="comment"># 按照name对乘客进行分组后，每个组的人数</span></div><div class="line">    <span class="keyword">return</span> data.groupby(column)[<span class="string">'房号'</span>].count()</div><div class="line"></div><div class="line"><span class="comment"># 定义一个柱状图绘图函数</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">print_bar</span><span class="params">(group_data, title)</span>:</span></div><div class="line">    <span class="comment">#plt.bar(title=title, facecolor='#9999ff', edgecolor='white')</span></div><div class="line">    ax = group_data.plot.bar(title = title, facecolor=<span class="string">'#9999ff'</span>, edgecolor=<span class="string">'white'</span>)</div><div class="line">    <span class="keyword">for</span> p <span class="keyword">in</span> ax.patches:</div><div class="line">        ax.annotate(np.round(p.get_height(),decimals=<span class="number">2</span>), (p.get_x()+p.get_width()/<span class="number">2.</span>, p.get_height()), </div><div class="line">                    ha=<span class="string">'center'</span>, va=<span class="string">'center'</span>, xytext=(<span class="number">0</span>, <span class="number">5</span>), textcoords=<span class="string">'offset points'</span>)</div><div class="line">        </div><div class="line"><span class="comment"># 定义一个饼图绘图函数</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">print_pie</span><span class="params">(group_data, title)</span>:</span></div><div class="line">    group_data.plot.pie(title=title,figsize=(<span class="number">6</span>, <span class="number">6</span>),autopct=<span class="string">'%3.1f%%'</span>,startangle = <span class="number">90</span>,legend=<span class="keyword">True</span>)</div></pre></td></tr></table></figure>
+<h3 id="户数及面积情况"><a href="#户数及面积情况" class="headerlink" title="户数及面积情况"></a>户数及面积情况</h3><p>查看各楼栋的户数情况</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## 各楼栋户数统计</span></div><div class="line">df_group_ld = group_count(df_actual,<span class="string">"楼栋"</span>)</div><div class="line">print_bar(df_group_ld, title = <span class="string">u"每栋楼户数"</span>)</div></pre></td></tr></table></figure>
+<img src="/2017/06/30/four-seasons-houses/output_14_0.png" alt="&nbsp" title="&nbsp">
+<p>将数据按照总面积进行排序，查看面积情况。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 按总面积进行排序,面积最小的三个户型</span></div><div class="line">df_actual.sort_values([<span class="string">"总面积（平方米）"</span>]).head(<span class="number">3</span>)</div></pre></td></tr></table></figure>
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>楼栋</th>
+      <th>房号</th>
+      <th>类型</th>
+      <th>总面积（平方米）</th>
+      <th>户型</th>
+      <th>状态</th>
+      <th>抵押</th>
+      <th>查封</th>
+      <th>楼层</th>
+      <th>实际户型</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>10</th>
+      <td>1</td>
+      <td>2304</td>
+      <td>住宅</td>
+      <td>93.6701</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+      <td>23</td>
+      <td>92</td>
+    </tr>
+    <tr>
+      <th>246</th>
+      <td>2</td>
+      <td>405</td>
+      <td>住宅</td>
+      <td>93.6943</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+      <td>4</td>
+      <td>92</td>
+    </tr>
+    <tr>
+      <th>236</th>
+      <td>2</td>
+      <td>605</td>
+      <td>住宅</td>
+      <td>93.6943</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+      <td>6</td>
+      <td>92</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 按总面积进行排序,面积最大的三个户型</span></div><div class="line">df_actual.sort_values([<span class="string">"总面积（平方米）"</span>]).tail(<span class="number">3</span>)</div></pre></td></tr></table></figure>
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>楼栋</th>
+      <th>房号</th>
+      <th>类型</th>
+      <th>总面积（平方米）</th>
+      <th>户型</th>
+      <th>状态</th>
+      <th>抵押</th>
+      <th>查封</th>
+      <th>楼层</th>
+      <th>实际户型</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>349</th>
+      <td>3</td>
+      <td>504</td>
+      <td>住宅</td>
+      <td>122.3650</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+      <td>5</td>
+      <td>120</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>1</td>
+      <td>2102</td>
+      <td>住宅</td>
+      <td>122.3890</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+      <td>21</td>
+      <td>120</td>
+    </tr>
+    <tr>
+      <th>146</th>
+      <td>2</td>
+      <td>2302</td>
+      <td>住宅</td>
+      <td>122.3979</td>
+      <td>3房2厅</td>
+      <td>确权不可售</td>
+      <td>是</td>
+      <td>否</td>
+      <td>23</td>
+      <td>120</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## 各户型情况统计</span></div><div class="line">df_group_area = group_count(df_actual,<span class="string">"实际户型"</span>)</div><div class="line">print_bar(df_group_area, title = <span class="string">u"小区整体户型分布情况"</span>)</div></pre></td></tr></table></figure>
+<img src="/2017/06/30/four-seasons-houses/output_18_0.png" alt="&nbsp" title="&nbsp">
+<p>实际有效户数317户，92方共有128户，117方共有126户，120方共63户。</p>
+<p>其中总面积最小的是1栋2304，面积大小为93.6701平，面积最大的是2栋2302，面积达到122.3979.有意思的是，整个小区中面积最大和最小的都在23楼（不同楼栋），可能只是巧合吧！</p>
+<h3 id="全款买房情况"><a href="#全款买房情况" class="headerlink" title="全款买房情况"></a>全款买房情况</h3><p>整个小区以及各楼栋的全款买房情况：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## 小区全款和贷款买房统计</span></div><div class="line">df_group_dy = group_count(df_actual,<span class="string">"抵押"</span>)</div><div class="line">df_group_dy.head()</div></pre></td></tr></table></figure>
+<pre><code>抵押
+否     72
+是    245
+Name: 房号, dtype: int64
+</code></pre><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 小区全款和贷款买房统计饼图</span></div><div class="line">print_pie(df_group_dy, title = <span class="string">u"是否贷款买房"</span>)</div></pre></td></tr></table></figure>
+<img src="/2017/06/30/four-seasons-houses/output_21_0.png" alt="&nbsp" title="&nbsp">
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">## 小区各楼栋全款买房统计</span></div><div class="line">df_group_dy_ld = group_count(df_actual[df_actual[<span class="string">"抵押"</span>] == <span class="string">"否"</span>],<span class="string">"楼栋"</span>)</div><div class="line">df_percent_loan_by_ld = df_group_dy_ld/df_group_ld</div><div class="line">df_group_dy_ld.head()</div></pre></td></tr></table></figure>
+<pre><code>楼栋
+1    16
+2    26
+3    30
+Name: 房号, dtype: int64
+</code></pre><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 各楼栋全款买房比例</span></div><div class="line">print_bar(df_percent_loan_by_ld, title = <span class="string">u"各楼栋全款买房比例"</span>)</div></pre></td></tr></table></figure>
+<img src="/2017/06/30/four-seasons-houses/output_23_0.png" alt="&nbsp" title="&nbsp">
+<p>通过数据可以看到：</p>
+<p>整个小区共有72户属于全款买房，占总户数的22.7%,其中1栋16户，2栋26户，3栋最多，多达30户属于全款购房。</p>
+<p>2、3栋全款购房的土豪最多，可能与2、3栋较早发售有关，早早关注楼盘的土豪们在发售一开始便早早下手全款拿下了。而2、3栋的全款购房比例也达到了26%和28%，相比之下1栋只有15%的业主属于全款购房，3栋属于当之无愧的小区第一土豪楼。</p>
+<h3 id="全款买房户型及楼层分析"><a href="#全款买房户型及楼层分析" class="headerlink" title="全款买房户型及楼层分析"></a>全款买房户型及楼层分析</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 全款买房楼层分析</span></div><div class="line">df_group_dy_floor = group_count(df_actual[df_actual[<span class="string">"抵押"</span>] == <span class="string">"否"</span>],<span class="string">"楼层"</span>)</div><div class="line">print_pie(df_group_dy_floor, title = <span class="string">u"全款购房的楼层分布情况"</span>)</div></pre></td></tr></table></figure>
+<img src="/2017/06/30/four-seasons-houses/output_26_0.png" alt="&nbsp" title="&nbsp">
+<p>可以看到，全款买房的楼层基本上以高层居多，绝大部分集中在8-19，由于数据中楼层过于分散，我们对数据进行处理。根据高层选楼的经验，一般业内将大于1/3总楼层，小于2/3总楼层的视为较好楼层，根据这个经验以及实际情况，我们对数据进行相关处理将本小区楼层划分成三类：</p>
+<ol>
+<li>低楼层3-8楼  </li>
+<li>中楼层9-16楼</li>
+<li>高楼层17-24楼</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 根据楼层获得楼层分类</span></div><div class="line">df_actual[<span class="string">"楼层分类"</span>] = df_actual.apply(get_floor_type, axis=<span class="number">1</span>)</div><div class="line"></div><div class="line"><span class="comment"># 全款买房楼层分类</span></div><div class="line">df_group_dy_floor_type = group_count(df_actual[df_actual[<span class="string">"抵押"</span>] == <span class="string">"否"</span>],<span class="string">"楼层分类"</span>)</div><div class="line">print_pie(df_group_dy_floor_type, title = <span class="string">u"全款购房的楼层分布情况"</span>)</div></pre></td></tr></table></figure>
+<img src="/2017/06/30/four-seasons-houses/output_28_0.png" alt="&nbsp" title="&nbsp">
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 款买房楼层分类数量</span></div><div class="line"><span class="keyword">print</span> df_group_dy_floor_type</div></pre></td></tr></table></figure>
+<pre><code>楼层分类
+1    18
+2    34
+3    20
+Name: 房号, dtype: int64
+</code></pre><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 全款买房户型分布</span></div><div class="line">df_group_dy_area = group_count(df_actual[df_actual[<span class="string">"抵押"</span>] == <span class="string">"否"</span>],<span class="string">"实际户型"</span>)</div><div class="line">print_pie(df_group_dy_area, title = <span class="string">u"全款购房的实际户型分布情况"</span>)</div></pre></td></tr></table></figure>
+<img src="/2017/06/30/four-seasons-houses/output_30_0.png" alt="&nbsp" title="&nbsp">
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 全款购房和整体的户型对比</span></div><div class="line">pd.crosstab(df_actual[<span class="string">"实际户型"</span>], df_actual[<span class="string">"抵押"</span>]).plot.bar(stacked=<span class="keyword">True</span>)</div></pre></td></tr></table></figure>
+<pre><code>&lt;matplotlib.axes._subplots.AxesSubplot at 0x115ad5410&gt;
+</code></pre><img src="/2017/06/30/four-seasons-houses/output_31_1.png" alt="&nbsp" title="&nbsp">
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 全款购房和整体的户型对比</span></div><div class="line"></div><div class="line">pd.concat([df_group_dy_area, df_group_area, df_group_dy_area/df_group_area], axis=<span class="number">1</span>)</div></pre></td></tr></table></figure>
+<div>
+<style>
+    .dataframe thead tr:only-child th {
+        text-align: right;
+    }
+
+    .dataframe thead th {
+        text-align: left;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>房号</th>
+      <th>房号</th>
+      <th>房号</th>
+    </tr>
+    <tr>
+      <th>实际户型</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>117</th>
+      <td>41</td>
+      <td>126</td>
+      <td>0.325397</td>
+    </tr>
+    <tr>
+      <th>120</th>
+      <td>12</td>
+      <td>63</td>
+      <td>0.190476</td>
+    </tr>
+    <tr>
+      <th>92</th>
+      <td>19</td>
+      <td>128</td>
+      <td>0.148438</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+<h4 id="全款购房楼层情况"><a href="#全款购房楼层情况" class="headerlink" title="全款购房楼层情况"></a>全款购房楼层情况</h4><p>可以看到，全款购房的所有72户单位中，有34户近一半是第2类楼层，即9-16楼，占比达到了47.2%。其次是17-24楼的第3类楼层，共20户，占比27.8%，最少的则是3-8楼的第1类楼层，共18户，占比为25.0%。</p>
+<p>如果我们将第2、3类楼层均视为中高层单位，则全款购房的单位中，共有75%属于中高层单位，由此我们可以看出，土豪们还是比较倾向于中高层单位的，这与我们购房时的常见情况也吻合。一般来说，同一栋楼，楼层越高价格是越贵的，可惜这里我们没有各单位的成交价格，否则应该可以使用线性回归找出楼层与价格之间的线性关系。</p>
+<h4 id="全款购房户型情况"><a href="#全款购房户型情况" class="headerlink" title="全款购房户型情况"></a>全款购房户型情况</h4><p>根据数据可以看出，全款购房的户型分布里，117方户型表现突出，是属于最多土豪购入的户型。</p>
+<p><strong>按全款购房情况来看：</strong></p>
+<p>在全款购房的72户中，117方的户型共41户，占所有全款购房的户数的56.9%.</p>
+<p>其次是92方户型，共19户，占所有全款购房的户数的26.4%.</p>
+<p>最后是120方户型，共12户，占所有全款购房的户数的16.7%.</p>
+<p><strong>按整体情况来看：</strong> </p>
+<p>小区内117方的户型共有126户，其中全款购房41户，占比32.53%</p>
+<p>120方户型共有63户，其中全款购房12户，占比19.04%</p>
+<p>92方户型共128户，其中全款购房19户，占比14.84%</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>四季花园总体来看属于小型社区，不过小也有小的好处，业主少也更能记得住邻居们，相处起来更容易！</p>
+<p>小区的户型较少，整体来说只有92、117、120三个户型，其中土豪出没几率最高的是117户型。</p>
+<p>此小区的实际情况中，117方户型确实属于小区最好的户型，基本都能做到南北对流，属于小区里的紧俏盘，看来土豪们的眼光也是非常不错。以后在小区里散步的时候要注意了，如果是117方户型的邻居，每3个里面就有一个是全款购房的土豪哦，哈哈哈!!!</p>
+]]></content>
+      
+        <categories>
+            
+            <category> DAND </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> Python </tag>
+            
+            <tag> DAND </tag>
+            
+            <tag> 数据分析 </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[机器学习中的特征缩放（feature scaling）]]></title>
       <url>/2017/06/22/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E4%B8%AD%E7%9A%84%E7%89%B9%E5%BE%81%E7%BC%A9%E6%94%BE%EF%BC%88feature-scaling%EF%BC%89/</url>
       <content type="html"><![CDATA[<p>在运用一些机器学习算法的时候不可避免地要对数据进行特征缩放（feature scaling），比如：在随机梯度下降（stochastic gradient descent）算法中，特征缩放有时能提高算法的收敛速度。
