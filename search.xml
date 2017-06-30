@@ -10,7 +10,7 @@
 <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>最近小区楼盘交楼了，等待了近两年的新房终于快要入住了，业主群也越来越活跃了，大家都非常期待尽快入住。</p>
 <p>在群里的聊天中发现，发现每户的建筑面积都与合同上有些差异，且阳光家缘上已经登记并公布出来了，于是爬下了本小区（四季花园）的阳光家缘数据进行探索性分析，使用学到的数据分析知识来了解一下本小区的情况。
 <a id="more"></a></p>
-<h3 id="数据导入"><a href="#数据导入" class="headerlink" title="数据导入"></a>数据导入</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">%matplotlib inline</div><div class="line"><span class="keyword">import</span> matplotlib</div><div class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</div><div class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</div><div class="line"><span class="keyword">import</span> warnings</div><div class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</div><div class="line">warnings.filterwarnings(<span class="string">'ignore'</span>)</div><div class="line">matplotlib.matplotlib_fname() </div><div class="line"></div><div class="line"><span class="comment">## 导入数据</span></div><div class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</div><div class="line"></div><div class="line">df = pd.read_csv(<span class="string">'/Users/lihan/Documents/four_seasons.csv'</span>)</div><div class="line"></div><div class="line">df.info()</div></pre></td></tr></table></figure>
+<h3 id="数据导入"><a href="#数据导入" class="headerlink" title="数据导入"></a>数据导入</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">%matplotlib inline</div><div class="line"><span class="keyword">import</span> matplotlib</div><div class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</div><div class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</div><div class="line"><span class="keyword">import</span> warnings</div><div class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</div><div class="line">warnings.filterwarnings(<span class="string">'ignore'</span>)</div><div class="line">plt.style.use(<span class="string">'seaborn-pastel'</span>)</div><div class="line">matplotlib.matplotlib_fname() </div><div class="line"></div><div class="line"><span class="comment">## 导入数据</span></div><div class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</div><div class="line"></div><div class="line">df = pd.read_csv(<span class="string">'/Users/lihan/Documents/four_seasons.csv'</span>)</div><div class="line"></div><div class="line">df.info()</div></pre></td></tr></table></figure>
 <pre><code>&lt;class &apos;pandas.core.frame.DataFrame&apos;&gt;
 RangeIndex: 368 entries, 0 to 367
 Data columns (total 8 columns):
@@ -549,11 +549,11 @@ Name: 房号, dtype: int64
         
         <tags>
             
-            <tag> 数据分析 </tag>
+            <tag> Python </tag>
             
             <tag> DAND </tag>
             
-            <tag> Python </tag>
+            <tag> 数据分析 </tag>
             
         </tags>
         
@@ -920,9 +920,9 @@ $$z=x^2 + y^2$$</p>
         
         <tags>
             
-            <tag> 数据分析 </tag>
-            
             <tag> R </tag>
+            
+            <tag> 数据分析 </tag>
             
         </tags>
         
@@ -966,11 +966,11 @@ $$z=x^2 + y^2$$</p>
         
         <tags>
             
-            <tag> 数据分析 </tag>
-            
             <tag> R </tag>
             
             <tag> DAND </tag>
+            
+            <tag> 数据分析 </tag>
             
         </tags>
         
@@ -1150,11 +1150,11 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> 数据分析 </tag>
+            <tag> Python </tag>
             
             <tag> DAND </tag>
             
-            <tag> Python </tag>
+            <tag> 数据分析 </tag>
             
             <tag> MongoDB </tag>
             
@@ -1245,9 +1245,9 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> 数据分析 </tag>
-            
             <tag> DAND </tag>
+            
+            <tag> 数据分析 </tag>
             
             <tag> Data scientist </tag>
             
@@ -2450,11 +2450,11 @@ MongoDB - MongoDB Manual 3.4</p>
         
         <tags>
             
-            <tag> 数据分析 </tag>
+            <tag> Python </tag>
             
             <tag> DAND </tag>
             
-            <tag> Python </tag>
+            <tag> 数据分析 </tag>
             
             <tag> Pandas </tag>
             
